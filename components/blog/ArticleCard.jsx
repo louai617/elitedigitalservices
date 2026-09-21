@@ -22,7 +22,9 @@ export default function ArticleCard({ article, featured = false, priority = fals
         <span className="sr-only">{article.title}</span>
       </Link>
 
-      <div className={`relative ${featured ? 'aspect-[16/10] md:aspect-auto md:h-full' : 'aspect-[16/9]'}`}>
+      {/* Covers are generated at 1200x630, so the frame matches that ratio —
+          otherwise object-cover crops the bracket motif off the edge. */}
+      <div className="relative aspect-[40/21]">
         {article.image ? (
           <Image
             src={article.image}
