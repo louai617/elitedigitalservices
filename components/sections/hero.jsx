@@ -51,24 +51,39 @@ export default function Hero() {
                     aria-hidden
                   />
                   
-                  <motion.div
-                    drag
-                    dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-                    dragElastic={0.8}
-                    whileDrag={{ scale: 1.1, cursor: "grabbing" }}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="relative z-30 w-72 h-72 sm:w-[450px] sm:h-[450px] md:w-[550px] md:h-[550px] cursor-grab active:cursor-grabbing select-none"
-                  >
-                    <Image 
-                      src={site.logo.src} 
-                      alt={site.logo.alt} 
-                      fill
-                      draggable={false}
-                      className="object-contain pointer-events-none"
-                      priority
-                    />
-                  </motion.div>
+                  {/* The EMS mark is icon-only, so the company name is set in
+                      type beneath it — otherwise nothing above the fold names
+                      the business. */}
+                  <div className="relative z-30 flex flex-col items-center gap-6 sm:gap-8">
+                    <motion.div
+                      drag
+                      dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+                      dragElastic={0.8}
+                      whileDrag={{ scale: 1.1, cursor: "grabbing" }}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="relative w-56 h-56 sm:w-80 sm:h-80 md:w-[400px] md:h-[400px] cursor-grab active:cursor-grabbing select-none"
+                    >
+                      <Image
+                        src={site.logo.src}
+                        alt={site.logo.alt}
+                        fill
+                        sizes="(max-width: 640px) 224px, (max-width: 768px) 320px, 400px"
+                        draggable={false}
+                        className="object-contain pointer-events-none"
+                        priority
+                      />
+                    </motion.div>
+
+                    <div className="select-none text-center">
+                      <p className="text-3xl sm:text-4xl md:text-5xl font-semibold tracking-[0.18em] text-[#F6F4F0]">
+                        ELITE
+                      </p>
+                      <p className="mt-1.5 text-[0.65rem] sm:text-xs md:text-sm font-medium tracking-[0.42em] text-[#C9A227]">
+                        MEDIA SOLUTIONS
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </BlurFade>
             </div>
