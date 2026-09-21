@@ -2,6 +2,7 @@
 
 import React from "react";
 import Image from "next/image";
+import { site } from "@/lib/site-config";
 import { motion, AnimatePresence } from "framer-motion";
 import BlurFade from "../ui/blur-fade";
 import Particles from "../magicui/particles";
@@ -60,8 +61,8 @@ export default function Hero() {
                     className="relative z-30 w-72 h-72 sm:w-[450px] sm:h-[450px] md:w-[550px] md:h-[550px] cursor-grab active:cursor-grabbing select-none"
                   >
                     <Image 
-                      src="/Digital Services.png" 
-                      alt="Digital Services" 
+                      src={site.logo.src} 
+                      alt={site.logo.alt} 
                       fill
                       draggable={false}
                       className="object-contain pointer-events-none"

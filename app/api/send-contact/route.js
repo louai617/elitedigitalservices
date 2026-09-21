@@ -1,57 +1,96 @@
 import { NextResponse } from 'next/server';
+import { validateLead } from '@/lib/validate-lead';
+import { formatLeadMessage, sendTelegramMessage, isTelegramConfigured } from '@/lib/telegram';
 
-export async function POST(request) {
-  try {
-    const body = await request.json();
-    console.log('CONTACT BODY:', body); // <– log
+// Leads must hit the live Telegram API, so this route is never cached.
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
-    const { formData, messageText } = body;
+/**
+ * Small in-memory rate limit: 5 submissions per IP per 10 minutes.
+ * Good enough for a single-instance Node deployment; swap for Redis if EMS
+ * ever runs more than one instance.
+ */
+const WINDOW_MS = 10 * 60 * 1000;
+const MAX_PER_WINDOW = 5;
+const hits = new Map();
 
-    const message =
-      messageText ||
-      `<b>New contact form submission</b>\n\n` +
-      `Name: ${formData?.name}\n` +
-      `Email: ${formData?.email}\n` +
-      `Message: ${formData?.message}`;
+function rateLimited(ip) {
+  const now = Date.now();
+  const recent = (hits.get(ip) || []).filter((t) => now - t < WINDOW_MS);
+  recent.push(now);
+  hits.set(ip, recent);
 
-    const telegramResult = await sendToTelegram(message);
-    console.log('TELEGRAM RESULT:', telegramResult); // <– log
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('Contact form submission error:', error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  // Opportunistic cleanup so the map cannot grow without bound.
+  if (hits.size > 5000) {
+    for (const [key, times] of hits) {
+      if (times.every((t) => now - t >= WINDOW_MS)) hits.delete(key);
+    }
   }
+  return recent.length > MAX_PER_WINDOW;
 }
 
-async function sendToTelegram(message) {
-  const botToken = process.env.TELEGRAM_BOT_TOKEN;
-  const chatId = process.env.TELEGRAM_CHAT_ID;
+function clientIp(request) {
+  const forwarded = request.headers.get('x-forwarded-for');
+  if (forwarded) return forwarded.split(',')[0].trim();
+  return request.headers.get('x-real-ip') || 'unknown';
+}
 
-  console.log('BOT TOKEN EXISTS?', !!botToken, 'CHAT ID:', chatId); // <– log
-
-  if (!botToken || !chatId) {
-    throw new Error('Telegram credentials not configured');
+export async function POST(request) {
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ success: false, error: 'Invalid request.' }, { status: 400 });
   }
 
-  const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
+  // Accept both the flat shape and the legacy `{ formData }` wrapper, but note
+  // that any client-supplied message text is deliberately ignored: the
+  // notification is built here, from validated fields only.
+  const input = body?.formData && typeof body.formData === 'object' ? body.formData : body;
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      chat_id: chatId,
-      text: message,
-      parse_mode: 'HTML',
-    }),
+  const result = validateLead(input);
+  if (!result.ok) {
+    // Silently accept honeypot hits so bots get no feedback to tune against.
+    if (result.spam) return NextResponse.json({ success: true });
+    return NextResponse.json(
+      { success: false, error: 'Please check the highlighted fields.', fields: result.errors },
+      { status: 400 }
+    );
+  }
+
+  if (rateLimited(clientIp(request))) {
+    return NextResponse.json(
+      { success: false, error: 'Too many submissions. Please try again shortly.' },
+      { status: 429 }
+    );
+  }
+
+  if (!isTelegramConfigured()) {
+    // Never claim success when the lead has nowhere to go.
+    console.error('[send-contact] TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID are not set.');
+    return NextResponse.json(
+      { success: false, error: 'We could not send your message right now. Please email us directly.' },
+      { status: 503 }
+    );
+  }
+
+  const text = formatLeadMessage(result.lead, {
+    source: 'Website',
+    page: typeof input?.page === 'string' ? input.page.slice(0, 200) : undefined,
+    time: new Date().toLocaleString('en-GB', { timeZone: 'Asia/Qatar', hour12: false }) + ' (Doha)',
   });
 
-  const data = await response.json();
-  console.log('TELEGRAM RAW RESPONSE:', data); // <– see 400/403 messages[web:3][web:25]
-
-  if (!response.ok) {
-    throw new Error(`Telegram API error: ${response.status} – ${data.description}`);
+  try {
+    await sendTelegramMessage(text);
+  } catch (error) {
+    // Log server-side for diagnosis; return a generic message to the browser.
+    console.error('[send-contact] Telegram delivery failed:', error.message);
+    return NextResponse.json(
+      { success: false, error: 'We could not send your message right now. Please email us directly.' },
+      { status: 502 }
+    );
   }
 
-  return data;
+  return NextResponse.json({ success: true });
 }

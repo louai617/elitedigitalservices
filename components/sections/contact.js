@@ -11,6 +11,7 @@ import {
   MessageSquare,
   Globe
 } from "lucide-react";
+import { site } from "@/lib/site-config";
 
 export default function ContactSection() {
   const [formData, setFormData] = useState({
@@ -25,6 +26,8 @@ export default function ContactSection() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(null); // 'success', 'error', null
+  const [errorMessage, setErrorMessage] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
   const [userLocation, setUserLocation] = useState(null);
   const [suggestions, setSuggestions] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -134,55 +137,41 @@ export default function ContactSection() {
 
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
+    // Guard against double-submit from a fast second click or an Enter key
+    // arriving while the first request is still in flight.
+    if (isSubmitting) return;
+
     setIsSubmitting(true);
     setSubmitStatus(null);
+    setErrorMessage("");
+    setFieldErrors({});
 
     try {
-      // Prepare message content
-      const messageText = `
-🚀 NEW CONTACT FORM SUBMISSION (${formData.type.toUpperCase()})
-
-${formData.type === 'individual' 
-  ? `👤 Name: ${formData.name}`
-  : `🏢 Company: ${formData.company}`}
-📧 Email: ${formData.email}
-📞 Phone: ${formData.phone}
-${formData.type === 'company' ? `📍 Company Location: ${formData.address}` : ''}
-${formData.service ? `⚡ Service: ${formData.service}` : ''}
-
-💬 Message:
-${formData.message}
-
-📍 User Location:
-${userLocation ? (
-  `🌍 Country: ${userLocation.country}
-🏙️ City: ${userLocation.city}
-📍 Region: ${userLocation.region}
-${userLocation.ip ? `🌐 IP: ${userLocation.ip}` : ''}
-🕐 Timezone: ${userLocation.timezone}`
-) : '🔍 Location unavailable'}
-
----
-Sent from ELITE digital agency Portfolio
-      `.trim();
-
-      // Send to your backend API which will handle Telegram and WhatsApp
+      // Only the raw fields are sent. The Telegram notification is composed
+      // server-side from validated values, so the browser cannot inject
+      // message content — and the bot token never reaches the client.
       const response = await fetch('/api/send-contact', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          formData,
-          messageText
-        })
+          ...formData,
+          page: typeof window !== 'undefined' ? window.location.pathname : undefined,
+        }),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to send message');
+      const data = await response.json().catch(() => ({}));
+
+      // Treat only an explicit success from the server as success, so the UI
+      // never shows a confirmation for a lead that was not delivered.
+      if (!response.ok || data?.success !== true) {
+        setFieldErrors(data?.fields || {});
+        setErrorMessage(
+          data?.error || "Sorry, we couldn't send your message. Please try again."
+        );
+        setSubmitStatus("error");
+        return;
       }
 
-      // Reset form on success
       setFormData({
         type: "individual",
         name: "",
@@ -194,36 +183,36 @@ Sent from ELITE digital agency Portfolio
         service: ""
       });
       setSubmitStatus("success");
-      
-      // Clear success message after 5 seconds
-      setTimeout(() => setSubmitStatus(null), 5000);
+      setTimeout(() => setSubmitStatus(null), 8000);
     } catch (error) {
       console.error('Form submission error:', error);
+      setErrorMessage("Network error. Please check your connection and try again.");
       setSubmitStatus("error");
-      // Clear error message after 5 seconds
-      setTimeout(() => setSubmitStatus(null), 5000);
     } finally {
       setIsSubmitting(false);
     }
-  }, [formData]);
+  }, [formData, isSubmitting]);
 
   const contactInfo = [
     {
       icon: Mail,
       label: "Email",
-      value: "hello@m2agency.com",
-      href: "mailto:hello@m2agency.com"
+      value: site.contact.email,
+      href: `mailto:${site.contact.email}`
     },
     {
       icon: MapPin,
       label: "Locations",
-      value: ["Dubai, UAE", "Algiers, Algeria", "Batna, Algeria"],
+      value: site.contact.locations,
       href: null
     }
   ];
 
   return (
-    <section className="py-12 sm:py-20 px-4 bg-muted/30 cursor-none">
+    // overflow-x-clip contains the decorative glow and the framer-motion entry
+    // transform, which otherwise push a few px of horizontal scroll onto
+    // narrow screens.
+    <section className="py-12 sm:py-20 px-4 bg-muted/30 overflow-x-clip">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <motion.div
@@ -345,7 +334,20 @@ Sent from ELITE digital agency Portfolio
               </h3>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+              {/* Honeypot — hidden from users and screen readers; bots fill it. */}
+              <div className="hidden" aria-hidden="true">
+                <label htmlFor="website">Website</label>
+                <input
+                  id="website"
+                  type="text"
+                  name="website"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  onChange={handleInputChange}
+                />
+              </div>
+
               {/* Type Selection */}
               <div className="flex p-1 bg-muted rounded-xl border border-border/50">
                 <button
@@ -389,6 +391,9 @@ Sent from ELITE digital agency Portfolio
                         className="w-full px-4 py-3 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
                         placeholder="Your full name"
                       />
+                      {fieldErrors.name && (
+                        <p className="mt-1 text-xs text-red-500">{fieldErrors.name}</p>
+                      )}
                     </div>
                     <div>
                       <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
@@ -404,6 +409,9 @@ Sent from ELITE digital agency Portfolio
                         className="w-full px-4 py-3 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
                         placeholder="your.email@example.com"
                       />
+                      {fieldErrors.email && (
+                        <p className="mt-1 text-xs text-red-500">{fieldErrors.email}</p>
+                      )}
                     </div>
                     <div className="sm:col-span-2">
                       <label htmlFor="phone" className="block text-sm font-medium text-foreground mb-2">
@@ -419,6 +427,9 @@ Sent from ELITE digital agency Portfolio
                         className="w-full px-4 py-3 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
                         placeholder="+1 (555) 000-0000"
                       />
+                      {fieldErrors.phone && (
+                        <p className="mt-1 text-xs text-red-500">{fieldErrors.phone}</p>
+                      )}
                     </div>
                   </>
                 ) : (
@@ -437,6 +448,9 @@ Sent from ELITE digital agency Portfolio
                         className="w-full px-4 py-3 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
                         placeholder="Your company name"
                       />
+                      {fieldErrors.company && (
+                        <p className="mt-1 text-xs text-red-500">{fieldErrors.company}</p>
+                      )}
                     </div>
                     <div>
                       <label htmlFor="email" className="block text-sm font-medium text-foreground mb-2">
@@ -452,6 +466,9 @@ Sent from ELITE digital agency Portfolio
                         className="w-full px-4 py-3 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
                         placeholder="business@company.com"
                       />
+                      {fieldErrors.email && (
+                        <p className="mt-1 text-xs text-red-500">{fieldErrors.email}</p>
+                      )}
                     </div>
                     <div>
                       <label htmlFor="phone" className="block text-sm font-medium text-foreground mb-2">
@@ -467,6 +484,9 @@ Sent from ELITE digital agency Portfolio
                         className="w-full px-4 py-3 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
                         placeholder="+1 (555) 000-0000"
                       />
+                      {fieldErrors.phone && (
+                        <p className="mt-1 text-xs text-red-500">{fieldErrors.phone}</p>
+                      )}
                     </div>
                     <div className="relative" ref={containerRef}>
                       <label htmlFor="address" className="block text-sm font-medium text-foreground mb-2">
@@ -548,6 +568,9 @@ Sent from ELITE digital agency Portfolio
                   className="w-full px-4 py-3 bg-muted border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors resize-vertical"
                   placeholder="Tell us about your project, goals, and how we can help..."
                 />
+                {fieldErrors.message && (
+                  <p className="mt-1 text-xs text-red-500">{fieldErrors.message}</p>
+                )}
               </div>
 
               {/* Submit Status */}
@@ -568,8 +591,8 @@ Sent from ELITE digital agency Portfolio
                   )}
                   <span className="text-sm font-medium">
                     {submitStatus === "success"
-                      ? "Thank you! Your message has been sent successfully."
-                      : "Sorry, there was an error sending your message. Please try again."}
+                      ? `Thank you — your message reached the ${site.shortName} team. We'll be in touch shortly.`
+                      : errorMessage || "Sorry, there was an error sending your message. Please try again."}
                   </span>
                 </motion.div>
               )}

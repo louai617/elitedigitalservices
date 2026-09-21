@@ -145,6 +145,15 @@ export default function LiquidGlassNavbar({ className = "", onNavigate } = {}) {
     setActiveItem(item)
     setIsMobileOpen(false)
     
+    // Items that live on another route navigate; the rest scroll in-page.
+    const routeMap = {
+      "Insights": "/blog",
+    };
+    if (routeMap[item]) {
+      window.location.href = routeMap[item];
+      return;
+    }
+
     const idMap = {
       "Our Vision": "vision",
     };
@@ -162,7 +171,7 @@ export default function LiquidGlassNavbar({ className = "", onNavigate } = {}) {
     }
   }, [onNavigate])
 
-  const navItems = useMemo(() => ["Our Vision", "Services","Projects", "Contact"], [])
+  const navItems = useMemo(() => ["Our Vision", "Services", "Projects", "Insights", "Contact"], [])
 
   // Dynamic text and background colors based on scroll position
   const textColor = hasScrolled ? "text-black" : "text-white";
