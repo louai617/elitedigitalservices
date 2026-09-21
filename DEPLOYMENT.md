@@ -33,6 +33,36 @@ automation, and connecting `elitemedia.qa`.
 ƒ /admin                 protected dashboard
 ```
 
+### A note on Vercel
+
+This repository is already connected to Vercel, and pushes build previews there
+successfully. **The site renders correctly on Vercel, but AI article generation
+will not work there.** Vercel's serverless filesystem is read-only apart from an
+ephemeral `/tmp`, so `content/posts/` cannot be written to.
+
+Concretely, on Vercel:
+
+- The marketing site, service pages and contact form all work normally.
+- The blog **displays** any articles committed to the repository.
+- `/api/cron/generate` and the admin "Generate" button return a clear
+  `503 Article storage is not writable on this host`, rather than failing
+  obscurely part-way through.
+
+Three ways forward, in order of effort:
+
+1. **Host on a VPS or Node plan with a persistent disk** (what section 3
+   describes). Everything works as designed, nothing changes.
+2. **Keep Vercel and generate elsewhere.** Run generation on a machine with a
+   disk, commit the resulting JSON in `content/posts/`, and let Vercel rebuild.
+   The blog stays fully static and fast.
+3. **Swap the store for a database.** `lib/blog/store.js` has a deliberately
+   narrow interface — `getAllArticles`, `getArticleBySlug`, `saveArticle`,
+   `deleteArticle`, `getContentFingerprint`. Reimplementing those against
+   Postgres, Vercel KV or similar requires no changes to any page or component.
+
+This is a decision about where the site should live; it is not a defect in the
+code. Pick a direction before enabling the daily cron.
+
 ---
 
 ## 2. Environment variables

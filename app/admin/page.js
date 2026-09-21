@@ -1,5 +1,5 @@
 import AdminDashboard from '@/components/blog/AdminDashboard';
-import { getAllArticles } from '@/lib/blog/store';
+import { getAllArticles, isStorageWritable } from '@/lib/blog/store';
 import { isAIConfigured, getAIConfig } from '@/lib/blog/ai-provider';
 import { CATEGORIES } from '@/lib/blog/schema';
 
@@ -10,17 +10,22 @@ export const metadata = { title: 'Content Admin', robots: { index: false, follow
 export default async function AdminPage() {
   const articles = await getAllArticles({ fresh: true });
 
-  let aiConfig = { configured: false };
-  if (isAIConfigured()) {
+  const aiConfig = {
+    configured: isAIConfigured(),
+    // Surfaced here because a read-only host silently breaks generation, and
+    // the dashboard is where that needs to be visible before it is relied on.
+    storageWritable: await isStorageWritable(),
+  };
+
+  if (aiConfig.configured) {
     const cfg = getAIConfig();
-    aiConfig = {
-      configured: true,
+    Object.assign(aiConfig, {
       provider: cfg.provider,
       model: cfg.model,
       articlesPerDay: Number(process.env.BLOG_ARTICLES_PER_DAY || 1),
       maxWords: Number(process.env.BLOG_MAX_WORDS || 1100),
       cronConfigured: Boolean(process.env.CRON_SECRET),
-    };
+    });
   }
 
   return <AdminDashboard initialArticles={articles} aiConfig={aiConfig} categories={CATEGORIES} />;

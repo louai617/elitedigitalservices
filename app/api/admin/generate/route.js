@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { generateArticle } from '@/lib/blog/generate';
 import { isAIConfigured, getAIConfig } from '@/lib/blog/ai-provider';
+import { isStorageWritable } from '@/lib/blog/store';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -14,6 +15,7 @@ export async function GET() {
   const cfg = getAIConfig();
   return NextResponse.json({
     configured: true,
+    storageWritable: await isStorageWritable(),
     provider: cfg.provider,
     model: cfg.model,
     maxOutputTokens: cfg.maxOutputTokens,

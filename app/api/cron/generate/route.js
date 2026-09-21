@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { generateBatch } from '@/lib/blog/generate';
 import { isAIConfigured } from '@/lib/blog/ai-provider';
+import { isStorageWritable } from '@/lib/blog/store';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -37,6 +38,17 @@ async function run(request) {
   if (!isAIConfigured()) {
     return NextResponse.json(
       { error: 'AI is not configured. Set AI_API_KEY (and optionally AI_PROVIDER / AI_MODEL).' },
+      { status: 503 }
+    );
+  }
+
+  if (!(await isStorageWritable())) {
+    return NextResponse.json(
+      {
+        error:
+          'Article storage is not writable on this host. Generated articles cannot ' +
+          'be persisted — deploy to a host with a persistent disk. See DEPLOYMENT.md.',
+      },
       { status: 503 }
     );
   }

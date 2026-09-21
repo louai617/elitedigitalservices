@@ -100,6 +100,14 @@ export default function AdminDashboard({ initialArticles, aiConfig, categories }
         <section className="mb-10 rounded-2xl border border-white/10 bg-white/[0.02] p-6">
           <h2 className="mb-4 text-lg font-semibold text-foreground">AI generation</h2>
 
+          {!aiConfig.storageWritable && (
+            <p className="mb-5 rounded-lg border border-red-500/30 bg-red-500/5 p-4 text-sm text-red-300">
+              This host&apos;s filesystem is read-only, so generated articles cannot be saved.
+              Generation will fail until the site runs on a host with a persistent disk.
+              See DEPLOYMENT.md.
+            </p>
+          )}
+
           {aiConfig.configured ? (
             <dl className="mb-5 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
               <div><dt className="text-muted-foreground">Provider</dt><dd className="text-foreground">{aiConfig.provider}</dd></div>
@@ -133,7 +141,7 @@ export default function AdminDashboard({ initialArticles, aiConfig, categories }
             <button
               type="button"
               onClick={generate}
-              disabled={busy || !aiConfig.configured}
+              disabled={busy || !aiConfig.configured || !aiConfig.storageWritable}
               className="rounded-lg bg-primary px-5 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
             >
               {busy ? 'Working…' : 'Generate article now'}
