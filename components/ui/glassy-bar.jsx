@@ -57,8 +57,10 @@ export default function LiquidGlassNavbar({ className = "", onNavigate } = {}) {
           country: data.country_name || "Unknown",
           countryCode: (data.country_code || "xx").toLowerCase(),
         })
-      } catch (error) {
-        console.error("Error fetching location:", error)
+      } catch {
+        // Cosmetic lookup only, and ad blockers commonly block ipapi.co, so a
+        // failure is expected rather than exceptional. Fall back quietly
+        // instead of logging an error into the console on every load.
         // Fallback location
         setLocation({
           city: "Global",

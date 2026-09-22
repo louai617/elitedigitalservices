@@ -12,34 +12,9 @@ import {
   Info,
   Sparkles
 } from "lucide-react";
-import StackIcon from "tech-stack-icons";
-import { techIcons } from "@/lib/projects-data";
+import TechStackItem from "@/components/projects/TechStackItem";
 
 export default function ProjectDetailClient({ project }) {
-  const TechStackItem = ({ tech }) => {
-    const techData = techIcons[tech];
-    if (!techData) {
-      return (
-        <span className="flex items-center gap-2 px-3 py-1.5 bg-muted/50 text-sm rounded-lg text-muted-foreground border border-border/50">
-          {tech}
-        </span>
-      );
-    }
-
-    return (
-      <span className="flex items-center gap-2 px-3 py-1.5 bg-muted/50 text-sm rounded-lg text-muted-foreground border border-border/50">
-        <div className="w-5 h-5 flex items-center justify-center">
-          <StackIcon
-            name={techData.name}
-            className="w-full h-full"
-            style={{ maxWidth: "16px", maxHeight: "16px" }}
-          />
-        </div>
-        {tech}
-      </span>
-    );
-  };
-
   return (
     <div className="min-h-screen bg-background text-foreground pb-20">
       {/* Navigation */}
@@ -171,7 +146,7 @@ export default function ProjectDetailClient({ project }) {
               </h3>
               <div className="flex flex-wrap gap-2">
                 {project.tech.map((tech) => (
-                  <TechStackItem key={tech} tech={tech} />
+                  <TechStackItem key={tech} tech={tech} size="lg" />
                 ))}
               </div>
             </section>

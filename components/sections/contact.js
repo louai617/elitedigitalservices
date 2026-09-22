@@ -120,7 +120,8 @@ export default function ContactSection() {
           throw new Error('IP location failed');
         }
       } catch (error) {
-        console.log('IP location failed, trying browser geolocation...');
+        // Location is optional metadata on the lead; if the lookup is
+        // blocked or offline the form still works, so stay quiet.
       }
     };
 
