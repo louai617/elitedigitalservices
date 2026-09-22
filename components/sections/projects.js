@@ -11,8 +11,8 @@ import {
   LayoutGrid,
 } from "lucide-react";
 
-import StackIcon from "tech-stack-icons";
-import { projects, filters, techIcons } from "@/lib/projects-data";
+import TechStackItem from "@/components/projects/TechStackItem";
+import { projects, filters } from "@/lib/projects-data";
 
 export default function ProjectsSection() {
   const [activeFilter, setActiveFilter] = useState("all");
@@ -44,33 +44,6 @@ export default function ProjectsSection() {
       }
       return newSet;
     });
-  };
-
-  const TechStackItem = ({ tech }) => {
-    const techData = techIcons[tech];
-    if (!techData) {
-      return (
-        <span className="flex items-center gap-1.5 px-2 py-1 bg-gray-300 text-xs rounded-md text-muted-foreground border border-border/50">
-          <div className="w-3 h-3 bg-muted-foreground/20 rounded-sm flex items-center justify-center">
-            <span className="text-[8px] font-bold text-muted-foreground">?</span>
-          </div>
-          {tech}
-        </span>
-      );
-    }
-
-    return (
-      <span className="flex items-center gap-1.5 px-2 py-1 bg-gray-300 text-xs rounded-md text-muted-foreground border border-border/50">
-        <div className="w-5 h-5 flex items-center justify-center">
-          <StackIcon
-            name={techData.name}
-            className="w-full h-full"
-            style={{ maxWidth: "16px", maxHeight: "16px" }}
-          />
-        </div>
-        {tech}
-      </span>
-    );
   };
 
   return (

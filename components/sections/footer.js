@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { site } from "@/lib/site-config";
 import Image from "next/image";
 import { 
   Instagram, 
@@ -10,7 +11,7 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   const socialLinks = [
-    { name: "Instagram", href: "https://instagram.com/m2agency_", icon: Instagram },
+    { name: "Instagram", href: site.social.instagram, icon: Instagram },
   ];
 
   return (
@@ -19,14 +20,15 @@ export default function Footer() {
         <div className="flex flex-col sm:flex-row items-center justify-between py-6 gap-4">
             <div className="flex items-center gap-2">
                 <Image
-                    src="/Digital Services.png"
-                    alt="ELITE digital agency"
+                    src={site.logo.src}
+                    alt={site.logo.alt}
                     width={40}
                     height={40}
-                    className="invert"
+                    className="h-10 w-10 object-contain"
                     loading="eager"
                     decoding="async"
                 />
+                <span className="sr-only">{site.fullName}</span>
             </div>
 
           {/* Social Links */}
@@ -50,7 +52,7 @@ export default function Footer() {
 
           {/* Copyright */}
           <div className="text-white/50 text-sm order-first sm:order-last">
-            Copyright © {currentYear} ELITE digital agency
+            Copyright © {currentYear} {site.name} ({site.shortName}). All rights reserved.
           </div>
         </div>
       </div>

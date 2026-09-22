@@ -57,8 +57,10 @@ export default function LiquidGlassNavbar({ className = "", onNavigate } = {}) {
           country: data.country_name || "Unknown",
           countryCode: (data.country_code || "xx").toLowerCase(),
         })
-      } catch (error) {
-        console.error("Error fetching location:", error)
+      } catch {
+        // Cosmetic lookup only, and ad blockers commonly block ipapi.co, so a
+        // failure is expected rather than exceptional. Fall back quietly
+        // instead of logging an error into the console on every load.
         // Fallback location
         setLocation({
           city: "Global",
@@ -145,6 +147,15 @@ export default function LiquidGlassNavbar({ className = "", onNavigate } = {}) {
     setActiveItem(item)
     setIsMobileOpen(false)
     
+    // Items that live on another route navigate; the rest scroll in-page.
+    const routeMap = {
+      "Insights": "/blog",
+    };
+    if (routeMap[item]) {
+      window.location.href = routeMap[item];
+      return;
+    }
+
     const idMap = {
       "Our Vision": "vision",
     };
@@ -162,7 +173,7 @@ export default function LiquidGlassNavbar({ className = "", onNavigate } = {}) {
     }
   }, [onNavigate])
 
-  const navItems = useMemo(() => ["Our Vision", "Services","Projects", "Contact"], [])
+  const navItems = useMemo(() => ["Our Vision", "Services", "Projects", "Insights", "Contact"], [])
 
   // Dynamic text and background colors based on scroll position
   const textColor = hasScrolled ? "text-black" : "text-white";

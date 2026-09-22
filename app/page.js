@@ -5,7 +5,6 @@ import ProjectsSection from "@/components/sections/projects";
 import ContactSection from "@/components/sections/contact";
 import Footer from "@/components/sections/footer";
 import LiquidGlassNavbar from "@/components/ui/glassy-bar";
-import { SmoothCursor } from "@/components/ui/smooth-cursor";
 import { VisionSection } from "@/components/sections/Vision";
 import { SectionDivider } from "@/components/ui/section-divider";
 
@@ -39,7 +38,6 @@ export default function Home() {
       <SectionDivider />
       <Footer />
 
-      <SmoothCursor />
     </div>
   );
 }

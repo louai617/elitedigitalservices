@@ -1,10 +1,9 @@
-# See https://www.robotstxt.org/robotstxt.html for documentation on how to use the robots.txt file
-#
-# To ban all spiders from the entire site uncomment the following two lines:
-# User-agent: *
-# Disallow: /
-
+# robots.txt for Elite Media Solutions (EMS)
 User-agent: *
 Allow: /
 
-Sitemap: https://m2agency.com/sitemap.xml
+# Keep the protected admin area out of the index.
+Disallow: /admin
+Disallow: /api/
+
+Sitemap: https://elitemedia.qa/sitemap.xml
