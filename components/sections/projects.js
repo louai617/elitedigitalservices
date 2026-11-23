@@ -131,13 +131,26 @@ export default function ProjectsSection() {
                     <div className="p-4 sm:p-6 h-full flex flex-col">
                       {/* Banner */}
                       <div className="relative mb-3 sm:mb-4 rounded-lg sm:rounded-xl overflow-hidden bg-muted aspect-video">
-                        <Image
-                          src={project.project.banner}
-                          alt={project.title}
-                          fill
-                          className="object-cover"
-                          loading="lazy"
-                        />
+                        {project.project.banner ? (
+                          <Image
+                            src={project.project.banner}
+                            alt={project.title}
+                            fill
+                            className="object-cover"
+                            loading="lazy"
+                          />
+                        ) : project.videos?.length ? (
+                          // No still image: show the video's opening frame.
+                          // `#t=0.1` makes Safari paint a frame without a poster.
+                          <video
+                            src={`${project.videos[0].src}#t=0.1`}
+                            className="absolute inset-0 w-full h-full object-cover"
+                            preload="metadata"
+                            muted
+                            playsInline
+                            aria-label={project.title}
+                          />
+                        ) : null}
                       </div>
 
                       {/* Content */}

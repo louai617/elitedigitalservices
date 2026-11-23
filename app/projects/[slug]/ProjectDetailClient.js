@@ -67,6 +67,36 @@ export default function ProjectDetailClient({ project }) {
           </p>
         </motion.div>
 
+        {/* Videos */}
+        {project.videos?.length > 0 && (
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="mb-16 space-y-10"
+          >
+            {project.videos.map((video, index) => (
+              <figure key={video.src}>
+                <div className="relative aspect-video rounded-2xl sm:rounded-3xl overflow-hidden border border-border/50 shadow-2xl bg-black">
+                  <video
+                    src={video.src}
+                    title={video.title}
+                    controls
+                    playsInline
+                    preload={index === 0 ? "metadata" : "none"}
+                    className="w-full h-full object-contain"
+                  />
+                </div>
+                {video.title && (
+                  <figcaption className="mt-3 text-lg font-medium text-foreground">
+                    {video.title}
+                  </figcaption>
+                )}
+              </figure>
+            ))}
+          </motion.section>
+        )}
+
         {/* Banner Image */}
         {project.project.banner && (
           <motion.div
@@ -140,16 +170,18 @@ export default function ProjectDetailClient({ project }) {
 
           {/* Sidebar */}
           <aside className="space-y-12">
-            <section>
-              <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
-                Technologies Used
-              </h3>
-              <div className="flex flex-wrap gap-2">
-                {project.tech.map((tech) => (
-                  <TechStackItem key={tech} tech={tech} size="lg" />
-                ))}
-              </div>
-            </section>
+            {project.tech.length > 0 && (
+              <section>
+                <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
+                  Technologies Used
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {project.tech.map((tech) => (
+                    <TechStackItem key={tech} tech={tech} size="lg" />
+                  ))}
+                </div>
+              </section>
+            )}
 
             {project.link && (
               <section className="p-8 rounded-3xl bg-primary text-primary-foreground relative overflow-hidden group">
