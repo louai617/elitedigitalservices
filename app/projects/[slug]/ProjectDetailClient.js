@@ -13,6 +13,7 @@ import {
   Sparkles
 } from "lucide-react";
 import TechStackItem from "@/components/projects/TechStackItem";
+import VideoCarousel from "@/components/projects/VideoCarousel";
 
 export default function ProjectDetailClient({ project }) {
   return (
@@ -67,35 +68,21 @@ export default function ProjectDetailClient({ project }) {
           </p>
         </motion.div>
 
-        {/* Videos */}
-        {project.videos?.length > 0 && (
+        {/* Videos, one titled carousel per client */}
+        {project.videoGroups?.map((group) => (
           <motion.section
+            key={group.title}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="mb-16 space-y-10"
+            className="mb-16"
           >
-            {project.videos.map((video, index) => (
-              <figure key={video.src}>
-                <div className="relative aspect-video rounded-2xl sm:rounded-3xl overflow-hidden border border-border/50 shadow-2xl bg-black">
-                  <video
-                    src={video.src}
-                    title={video.title}
-                    controls
-                    playsInline
-                    preload={index === 0 ? "metadata" : "none"}
-                    className="w-full h-full object-contain"
-                  />
-                </div>
-                {video.title && (
-                  <figcaption className="mt-3 text-lg font-medium text-foreground">
-                    {video.title}
-                  </figcaption>
-                )}
-              </figure>
-            ))}
+            <h2 className="mb-8 text-3xl sm:text-4xl font-bold uppercase tracking-[0.15em] text-primary">
+              {group.title}
+            </h2>
+            <VideoCarousel videos={group.videos} label={`${group.title} videos`} />
           </motion.section>
-        )}
+        ))}
 
         {/* Banner Image */}
         {project.project.banner && (

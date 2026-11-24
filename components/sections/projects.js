@@ -139,11 +139,11 @@ export default function ProjectsSection() {
                             className="object-cover"
                             loading="lazy"
                           />
-                        ) : project.videos?.length ? (
+                        ) : project.videoGroups?.[0]?.videos?.length ? (
                           // No still image: show the video's opening frame.
                           // `#t=0.1` makes Safari paint a frame without a poster.
                           <video
-                            src={`${project.videos[0].src}#t=0.1`}
+                            src={`${project.videoGroups[0].videos[0].src}#t=0.1`}
                             className="absolute inset-0 w-full h-full object-cover"
                             preload="metadata"
                             muted
