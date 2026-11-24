@@ -1,0 +1,57 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+  :root { --ink:#0A0A0C; --bone:#F6F4F0; --gold:#C9A227; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { width:1600px; height:900px; background:var(--ink); font-family:'Inter',sans-serif; overflow:hidden; position:relative; }
+  .glow { position:absolute; left:120px; top:90px; width:820px; height:720px;
+    background:radial-gradient(closest-side, rgba(201,162,39,.28), rgba(201,162,39,.08) 55%, transparent 75%); filter:blur(10px); }
+  .vignette { position:absolute; inset:0; background:radial-gradient(120% 90% at 35% 50%, transparent 55%, rgba(0,0,0,.55)); }
+  /* ECG line across the frame */
+  svg.ecg { position:absolute; left:0; top:0; }
+  /* viewfinder */
+  .vf { position:absolute; left:250px; top:210px; width:480px; height:480px; }
+  .b { position:absolute; width:120px; height:120px; border-color:var(--bone); border-style:solid; border-width:0; }
+  .tl { left:0; top:0; border-top-width:16px; border-left-width:16px; }
+  .tr { right:0; top:0; border-top-width:16px; border-right-width:16px; }
+  .bl { left:0; bottom:0; border-bottom-width:16px; border-left-width:16px; }
+  .br { right:0; bottom:0; border-bottom-width:16px; border-right-width:16px; }
+  .cross { position:absolute; left:50%; top:50%; width:190px; height:190px; transform:translate(-50%,-50%);
+    filter:drop-shadow(0 0 30px rgba(201,162,39,.55)); }
+  .cross::before, .cross::after { content:""; position:absolute; background:var(--gold); border-radius:14px; }
+  .cross::before { left:65px; top:0; width:60px; height:190px; }
+  .cross::after  { left:0; top:65px; width:190px; height:60px; }
+  .rec { position:absolute; left:78px; top:66px; display:flex; align-items:center; gap:14px;
+    color:var(--bone); font-weight:600; font-size:26px; letter-spacing:.18em; }
+  .dot { width:18px; height:18px; border-radius:50%; background:#E5484D; box-shadow:0 0 16px rgba(229,72,77,.8); }
+  .tc { position:absolute; right:78px; top:66px; color:rgba(246,244,240,.55); font:500 26px 'JetBrains Mono',monospace; letter-spacing:.06em; }
+  .text { position:absolute; left:830px; top:0; bottom:0; display:flex; flex-direction:column; justify-content:center; }
+  .kicker { color:var(--gold); font-weight:600; font-size:28px; letter-spacing:.42em; margin-bottom:22px; }
+  h1 { font-family:'Inter Display','Inter',sans-serif; font-weight:800; font-size:138px; line-height:.92; color:var(--bone); letter-spacing:-.01em; }
+  .rule { width:120px; height:6px; background:var(--gold); margin:36px 0 30px; }
+  .client { color:var(--bone); font-weight:600; font-size:40px; letter-spacing:.24em; }
+  .films { color:rgba(246,244,240,.55); font-weight:500; font-size:28px; margin-top:12px; letter-spacing:.04em; }
+</style></head><body>
+  <div class="glow"></div>
+  <svg class="ecg" width="1600" height="900" viewBox="0 0 1600 900">
+    <defs><linearGradient id="fade" x1="0" x2="800" y1="0" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#C9A227" stop-opacity="0"/>
+      <stop offset=".15" stop-color="#C9A227" stop-opacity=".45"/>
+      <stop offset=".8" stop-color="#C9A227" stop-opacity=".45"/>
+      <stop offset="1" stop-color="#C9A227" stop-opacity="0"/></linearGradient></defs>
+    <polyline fill="none" stroke="url(#fade)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"
+      points="0,450 150,450 175,450 195,418 215,450 238,450 256,470 278,330 300,560 322,450 352,450 372,430 392,450 800,450"/>
+  </svg>
+  <div class="vf">
+    <div class="b tl"></div><div class="b tr"></div><div class="b bl"></div><div class="b br"></div>
+    <div class="cross"></div>
+  </div>
+  <div class="rec"><span class="dot"></span>REC</div>
+  <div class="tc">00:00:00:00</div>
+  <div class="text">
+    <div class="kicker">VIDEO PRODUCTION</div>
+    <h1>MEDICAL</h1>
+    <div class="rule"></div>
+    <div class="client">CLINICA JOELLE</div>
+    <div class="films">7 doctor films</div>
+  </div>
+  <div class="vignette"></div>
+</body></html>

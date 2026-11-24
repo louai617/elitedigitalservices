@@ -85,7 +85,9 @@ export default function ProjectDetailClient({ project }) {
         ))}
 
         {/* Banner Image */}
-        {project.project.banner && (
+        {/* Projects with videos lead with the carousel instead; their banner
+            is only the card image. */}
+        {project.project.banner && !project.videoGroups?.length && (
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
