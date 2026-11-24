@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import VideoPoster from "./VideoPoster";
 
 /**
  * One video at a time, with arrows, a counter and a thumbnail strip.
@@ -73,15 +74,20 @@ export default function VideoCarousel({ videos, label }) {
             >
               <video
                 ref={(el) => (videoRefs.current[i] = el)}
-                src={video.src}
                 title={video.title}
+                poster={video.poster}
                 controls
                 playsInline
-                // Only the first player preloads; the rest wait until someone
-                // moves to them. (Thumbnails below fetch just enough for a frame.)
-                preload={i === 0 ? "metadata" : "none"}
+                // The slide in view and its neighbours fetch their headers so
+                // play starts at once; the rest wait until reached.
+                preload={Math.abs(i - index) <= 1 ? "metadata" : "none"}
                 className="w-full h-full object-contain"
-              />
+              >
+                {/* The browser tries these in order: the optimized file first,
+                    the original upload if that one is missing. */}
+                <source src={video.src} type="video/mp4" />
+                {video.fallback && <source src={video.fallback} type="video/mp4" />}
+              </video>
             </div>
           ))}
         </div>
@@ -133,15 +139,9 @@ export default function VideoCarousel({ videos, label }) {
               }`}
             >
               <div className="relative aspect-video bg-muted">
-                {/* `#t=0.1` makes Safari paint a frame without a poster. */}
-                <video
-                  src={`${video.src}#t=0.1`}
-                  preload="metadata"
-                  muted
-                  playsInline
-                  tabIndex={-1}
-                  aria-hidden="true"
-                  className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+                <VideoPoster
+                  video={video}
+                  className="absolute inset-0 w-full h-full object-cover"
                 />
               </div>
               <span className="block truncate px-2 py-1.5 text-left text-xs text-muted-foreground group-hover:text-foreground">

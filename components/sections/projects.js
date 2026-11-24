@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 
 import TechStackItem from "@/components/projects/TechStackItem";
+import VideoPoster from "@/components/projects/VideoPoster";
 import { projects, filters } from "@/lib/projects-data";
 
 export default function ProjectsSection() {
@@ -140,15 +141,9 @@ export default function ProjectsSection() {
                             loading="lazy"
                           />
                         ) : project.videoGroups?.[0]?.videos?.length ? (
-                          // No still image: show the video's opening frame.
-                          // `#t=0.1` makes Safari paint a frame without a poster.
-                          <video
-                            src={`${project.videoGroups[0].videos[0].src}#t=0.1`}
+                          <VideoPoster
+                            video={project.videoGroups[0].videos[0]}
                             className="absolute inset-0 w-full h-full object-cover"
-                            preload="metadata"
-                            muted
-                            playsInline
-                            aria-label={project.title}
                           />
                         ) : null}
                       </div>
