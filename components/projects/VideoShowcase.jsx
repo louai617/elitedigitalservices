@@ -16,6 +16,7 @@ import {
   MonitorPlay,
 } from "lucide-react";
 import VideoPoster from "./VideoPoster";
+import ReelViewer from "./ReelViewer";
 
 const ICONS = { Clapperboard, Film, Sparkles, Smartphone, Stethoscope, MonitorPlay };
 const pad = (n) => String(n).padStart(2, "0");
@@ -172,6 +173,8 @@ function ClientReel({ group }) {
   const { videos } = group;
   const [index, setIndex] = useState(0);
   const [autoplay, setAutoplay] = useState(false);
+  const [reelAt, setReelAt] = useState(null); // phone reel viewer, open at this index
+  const closeReel = useCallback(() => setReelAt(null), []);
   const stageRef = useRef(null);
   const videoRef = useRef(null);
   const current = videos[index];
@@ -210,7 +213,7 @@ function ClientReel({ group }) {
       </motion.div>
 
       {/* Stage */}
-      <motion.div {...fadeUp} ref={stageRef} className="relative scroll-mt-24">
+      <motion.div {...fadeUp} ref={stageRef} className="relative hidden scroll-mt-24 sm:block">
         {/* Ambient glow: the current poster, blurred behind the frame. */}
         <div aria-hidden="true" className="pointer-events-none absolute -inset-6 -z-10 opacity-50 blur-3xl sm:-inset-10">
           <VideoPoster key={current.src} video={current} className="h-full w-full object-cover" />
@@ -244,7 +247,7 @@ function ClientReel({ group }) {
         )}
       </motion.div>
 
-      <div className="mt-5 flex items-center justify-between gap-4">
+      <div className="mt-5 hidden items-center justify-between gap-4 sm:flex">
         <div className="min-w-0">
           <p className="text-xs uppercase tracking-widest text-primary">Now playing</p>
           <p className="truncate text-xl font-semibold sm:text-2xl" aria-live="polite">{current.title}</p>
@@ -266,9 +269,19 @@ function ClientReel({ group }) {
         </div>
       </div>
 
-      {/* Grid */}
-      {videos.length > 1 && (
-        <ul className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
+      {/* Phones: one tap into the full-screen reel feed */}
+      <button
+        type="button"
+        onClick={() => setReelAt(0)}
+        className="flex w-full items-center justify-center gap-3 rounded-full bg-primary py-4 font-semibold text-primary-foreground shadow-[0_0_40px_-10px] shadow-primary/70 sm:hidden"
+      >
+        <Play size={18} className="fill-current" />
+        Watch as reels
+      </button>
+
+      {/* Grid: Instagram-style tall tiles on phones, landscape cards above */}
+      {videos.length > 0 && (
+        <ul className="mt-6 grid grid-cols-3 gap-1.5 sm:mt-10 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
           {videos.map((video, i) => {
             const active = i === index;
             return (
@@ -281,23 +294,27 @@ function ClientReel({ group }) {
               >
                 <button
                   type="button"
-                  onClick={() => select(i, { scroll: true })}
+                  onClick={() =>
+                    window.matchMedia("(max-width: 639px)").matches ? setReelAt(i) : select(i, { scroll: true })
+                  }
                   aria-label={`Play ${video.title}`}
                   aria-current={active}
-                  className={`group relative block w-full overflow-hidden rounded-xl text-left ring-1 transition duration-300 ${
-                    active ? "ring-2 ring-primary" : "ring-border/60 hover:ring-primary/50"
+                  className={`group relative block w-full overflow-hidden rounded-lg text-left ring-1 transition duration-300 sm:rounded-xl ${
+                    active ? "ring-1 ring-border/60 sm:ring-2 sm:ring-primary" : "ring-border/60 hover:ring-primary/50"
                   }`}
                 >
-                  <div className="relative aspect-video bg-muted">
+                  <div className="relative aspect-[9/16] bg-muted sm:aspect-video">
                     <VideoPoster
                       video={video}
                       className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
-                    <span className="absolute left-3 top-3 font-mono text-xs text-white/70">{pad(i + 1)}</span>
+                    <span className="absolute left-2 top-2 font-mono text-[10px] text-white/70 sm:left-3 sm:top-3 sm:text-xs">{pad(i + 1)}</span>
 
+                    {/* Reel icon on phones */}
+                    <Play size={14} className="absolute right-2 top-2 fill-white text-white drop-shadow sm:hidden" />
                     {active ? (
-                      <span className="absolute right-3 top-3 flex items-end gap-[3px] rounded-full bg-primary px-2 py-1.5" aria-hidden="true">
+                      <span className="absolute right-3 top-3 hidden items-end sm:flex gap-[3px] rounded-full bg-primary px-2 py-1.5" aria-hidden="true">
                         {[0, 1, 2].map((b) => (
                           <span
                             key={b}
@@ -307,12 +324,12 @@ function ClientReel({ group }) {
                         ))}
                       </span>
                     ) : (
-                      <span className="absolute left-1/2 top-1/2 flex h-11 w-11 -translate-x-1/2 -translate-y-1/2 scale-75 items-center justify-center rounded-full bg-primary text-primary-foreground opacity-0 shadow-lg transition duration-300 group-hover:scale-100 group-hover:opacity-100">
+                      <span className="absolute left-1/2 top-1/2 hidden h-11 w-11 sm:flex -translate-x-1/2 -translate-y-1/2 scale-75 items-center justify-center rounded-full bg-primary text-primary-foreground opacity-0 shadow-lg transition duration-300 group-hover:scale-100 group-hover:opacity-100">
                         <Play size={18} className="ml-0.5 fill-current" />
                       </span>
                     )}
 
-                    <span className="absolute inset-x-3 bottom-2.5 truncate text-sm font-medium text-white">
+                    <span className="absolute inset-x-2 bottom-2 line-clamp-2 text-xs font-medium leading-tight text-white sm:inset-x-3 sm:bottom-2.5 sm:truncate sm:text-sm">
                       {video.title}
                     </span>
                   </div>
@@ -321,6 +338,10 @@ function ClientReel({ group }) {
             );
           })}
         </ul>
+      )}
+
+      {reelAt !== null && (
+        <ReelViewer videos={videos} startIndex={reelAt} client={group.title} onClose={closeReel} />
       )}
     </section>
   );
