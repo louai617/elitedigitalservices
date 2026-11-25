@@ -14,19 +14,23 @@ import {
 } from "lucide-react";
 import TechStackItem from "@/components/projects/TechStackItem";
 import VideoShowcase from "@/components/projects/VideoShowcase";
+import Logo from "@/components/brand/Logo";
 
 export default function ProjectDetailClient({ project }) {
   return (
     <div className="min-h-screen bg-background text-foreground pb-20">
       {/* Navigation */}
       <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/50">
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+        <div className="relative max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <Link 
             href="/#projects" 
             className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors group"
           >
             <ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />
-            Back to Projects
+            <span className="hidden sm:inline">Back to Projects</span>
+          </Link>
+          <Link href="/" aria-label="Elite Media Solutions — home" className="absolute left-1/2 -translate-x-1/2 transition-opacity hover:opacity-90">
+            <Logo />
           </Link>
           <div className="flex items-center gap-4">
             {project.github && (

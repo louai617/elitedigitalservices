@@ -1,7 +1,8 @@
 "use client";
 
+import { LogoMark, Wordmark } from "@/components/brand/Logo";
+
 import React from "react";
-import Image from "next/image";
 import { site } from "@/lib/site-config";
 import { motion, AnimatePresence } from "framer-motion";
 import BlurFade from "../ui/blur-fade";
@@ -64,24 +65,11 @@ export default function Hero() {
                       whileTap={{ scale: 0.95 }}
                       className="relative w-56 h-56 sm:w-80 sm:h-80 md:w-[400px] md:h-[400px] cursor-grab active:cursor-grabbing select-none"
                     >
-                      <Image
-                        src={site.logo.src}
-                        alt={site.logo.alt}
-                        fill
-                        sizes="(max-width: 640px) 224px, (max-width: 768px) 320px, 400px"
-                        draggable={false}
-                        className="object-contain pointer-events-none"
-                        priority
-                      />
+                      <LogoMark title={site.logo.alt} className="h-full w-full p-[15%] pointer-events-none" />
                     </motion.div>
 
                     <div className="select-none text-center">
-                      <p className="text-3xl sm:text-4xl md:text-5xl font-semibold tracking-[0.18em] text-[#F6F4F0]">
-                        ELITE
-                      </p>
-                      <p className="mt-1.5 text-[0.65rem] sm:text-xs md:text-sm font-medium tracking-[0.42em] text-[#C9A227]">
-                        MEDIA SOLUTIONS
-                      </p>
+                      <Wordmark size="lg" className="items-center" />
                     </div>
                   </div>
                 </div>

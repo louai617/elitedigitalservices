@@ -1,5 +1,6 @@
 import "./globals.css";
 import { site } from "@/lib/site-config";
+import SiteHeader from "@/components/brand/SiteHeader";
 
 export const metadata = {
   metadataBase: new URL(site.url),
@@ -85,6 +86,7 @@ export default function RootLayout({ children }) {
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
         />
+        <SiteHeader />
         {children}
       </body>
     </html>

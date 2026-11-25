@@ -1,8 +1,9 @@
 "use client";
 
+import Logo from "@/components/brand/Logo";
+
 import React from "react";
 import { site } from "@/lib/site-config";
-import Image from "next/image";
 import { 
   Instagram, 
 } from "lucide-react";
@@ -19,15 +20,7 @@ export default function Footer() {
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex flex-col sm:flex-row items-center justify-between py-6 gap-4">
             <div className="flex items-center gap-2">
-                <Image
-                    src={site.logo.src}
-                    alt={site.logo.alt}
-                    width={40}
-                    height={40}
-                    className="h-10 w-10 object-contain"
-                    loading="eager"
-                    decoding="async"
-                />
+                <Logo markClassName="h-10 w-10" />
                 <span className="sr-only">{site.fullName}</span>
             </div>
 

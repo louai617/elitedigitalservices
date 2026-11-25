@@ -1,5 +1,7 @@
 'use client';
 
+import Logo from '@/components/brand/Logo';
+
 import { useState } from 'react';
 import Link from 'next/link';
 
@@ -90,6 +92,7 @@ export default function AdminDashboard({ initialArticles, aiConfig, categories }
     <main className="min-h-screen bg-background px-4 py-12">
       <div className="mx-auto max-w-6xl">
         <header className="mb-10">
+          <Logo className="mb-6" />
           <h1 className="text-3xl font-bold text-foreground">Content Admin</h1>
           <p className="mt-2 text-sm text-muted-foreground">
             {articles.length} article{articles.length === 1 ? '' : 's'} ·{' '}
