@@ -214,7 +214,7 @@ ok "nginx serving ${DOMAIN}"
 
 # HTTPS needs the domain to point here first.
 SERVER_IP=$(curl -fs4 --max-time 10 https://api.ipify.org || hostname -I | awk '{print $1}')
-DNS_IP=$(dig +short "$DOMAIN" A | tail -1)
+DNS_IP=$(dig +short "$DOMAIN" A @1.1.1.1 | tail -1)  # public resolver: the VPS's own may cache the old IP
 if [ "$DNS_IP" = "$SERVER_IP" ]; then
   if [ ! -d "/etc/letsencrypt/live/${DOMAIN}" ]; then
     read -rp "  Email for SSL expiry notices: " SSL_EMAIL </dev/tty
