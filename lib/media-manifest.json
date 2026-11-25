@@ -1,5 +1,5 @@
 {
-  "_comment": "Single source of truth for hosted videos. Read by lib/projects-data.js (to render them) and by scripts/vps-setup.sh (to migrate and optimize them). 'original' is the file as first uploaded to Vercel Blob.",
+  "_comment": "Single source of truth for hosted videos. Read by lib/projects-data.js (to render them) and by scripts/vps-setup.sh (to optimize them onto the VPS). Each entry has either original (file on Vercel Blob) or upload (file copied to /var/www/ems-media/uploads/ on the VPS).",
   "blobStore": "https://xn1wb9rstmi0a9aj.public.blob.vercel-storage.com",
   "medical": [
     { "name": "dr-rana", "title": "Dr. Rana", "original": "dr.rana%20final%20V6.mp4" },

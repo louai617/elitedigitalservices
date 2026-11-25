@@ -118,13 +118,19 @@ STORE=$(node -p "require('./lib/media-manifest.json').blobStore")
 TMP=$(mktemp -d); trap 'rm -rf "$TMP"' EXIT
 for folder in $(node -p "Object.keys(require('./lib/media-manifest.json')).filter(k => Array.isArray(require('./lib/media-manifest.json')[k])).join(' ')"); do
   mkdir -p "$MEDIA_DIR/$folder"
-  node -p "require('./lib/media-manifest.json')['$folder'].map(v => v.name + '|' + v.original).join('\n')" |
-  while IFS='|' read -r name original; do
+  node -p "require('./lib/media-manifest.json')['$folder'].map(v => [v.name, v.original || '', v.upload || ''].join('|')).join('\n')" |
+  while IFS='|' read -r name original upload; do
     out="$MEDIA_DIR/$folder/$name"
     if [ -s "$out.mp4" ] && [ -s "$out.jpg" ]; then ok "$folder/$name (already done)"; continue; fi
     # -nostdin below matters: this loop reads the video list from stdin, and
     # ffmpeg would otherwise swallow the remaining entries.
-    curl -fsSL "$STORE/$original" -o "$TMP/in.mp4" || fail "could not download $STORE/$original"
+    if [ -n "$upload" ]; then
+      # Uploaded straight to the VPS (scp into $MEDIA_DIR/uploads/).
+      [ -s "$MEDIA_DIR/uploads/$upload" ] || { warn "$folder/$name: upload $MEDIA_DIR/uploads/$upload not found, skipping"; continue; }
+      cp "$MEDIA_DIR/uploads/$upload" "$TMP/in.mp4"
+    else
+      curl -fsSL "$STORE/$original" -o "$TMP/in.mp4" || fail "could not download $STORE/$original"
+    fi
     before=$(du -h "$TMP/in.mp4" | cut -f1)
     # Up to 1080p, capped bitrate, index at the front so playback starts at once.
     ffmpeg -nostdin -loglevel error -y -i "$TMP/in.mp4" -vf "scale='min(1920,iw)':-2" \
@@ -135,7 +141,7 @@ for folder in $(node -p "Object.keys(require('./lib/media-manifest.json')).filte
     ok "$folder/$name  $before → $(du -h "$out.mp4" | cut -f1)"
   done
 done
-chmod -R a+rX "$MEDIA_DIR"
+mkdir -p "$MEDIA_DIR/uploads"; chmod -R a+rX "$MEDIA_DIR"
 
 # -------------------------------------------------------------- 5. build ---
 bold "5/7  Build and run"
