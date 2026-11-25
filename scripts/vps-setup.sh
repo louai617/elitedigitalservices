@@ -186,6 +186,10 @@ server {
     listen [::]:80;
     server_name ${DOMAIN} www.${DOMAIN};
 
+    # One address for search engines: www permanently redirects to the bare
+    # domain. Certbot copies this into the HTTPS block it creates.
+    if (\$host = www.${DOMAIN}) { return 301 https://${DOMAIN}\$request_uri; }
+
     # Videos and posters straight from disk: nginx handles range requests,
     # so playback starts immediately and seeking works.
     location /media/ {

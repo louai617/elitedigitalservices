@@ -2,6 +2,7 @@ import { getPublishedArticles } from '@/lib/blog/store';
 import { CATEGORIES } from '@/lib/blog/schema';
 import { site } from '@/lib/site-config';
 import { projects } from '@/lib/projects-data';
+import { projectVideos } from '@/lib/project-seo';
 
 // Regenerated on the same cadence as the blog, so a new article is listed
 // within minutes of publishing without a rebuild.
@@ -22,7 +23,17 @@ export default async function sitemap() {
     url: `${site.url}/projects/${project.slug}`,
     lastModified: new Date(),
     changeFrequency: 'yearly',
-    priority: 0.6,
+    priority: project.videoGroups?.length ? 0.8 : 0.6,
+    // Video sitemap entries, so the films can appear in Google video results.
+    ...(project.videoGroups?.length && {
+      videos: projectVideos(project).map((v) => ({
+        title: v.name,
+        description: v.description,
+        thumbnail_loc: v.thumbnailUrl,
+        content_loc: v.contentUrl,
+        publication_date: v.uploadDate,
+      })),
+    }),
   }));
 
   const serviceRoutes = site.services.map((service) => ({

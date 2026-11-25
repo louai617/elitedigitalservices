@@ -38,6 +38,12 @@ export const metadata = {
   alternates: {
     canonical: "/",
   },
+  // Ownership proof for Google Search Console / Bing Webmaster Tools. Set the
+  // codes in .env.local on the server; nothing is emitted while unset.
+  verification: {
+    ...(process.env.GOOGLE_SITE_VERIFICATION && { google: process.env.GOOGLE_SITE_VERIFICATION }),
+    ...(process.env.BING_SITE_VERIFICATION && { other: { "msvalidate.01": process.env.BING_SITE_VERIFICATION } }),
+  },
   icons: {
     icon: site.icon,
     shortcut: site.icon,
@@ -63,7 +69,8 @@ export const metadata = {
 /** Organization schema — sitewide, so search engines resolve the EMS entity. */
 const organizationSchema = {
   "@context": "https://schema.org",
-  "@type": "Organization",
+  "@type": "ProfessionalService",
+  "@id": `${site.url}/#organization`,
   name: site.name,
   alternateName: site.shortName,
   url: site.url,
@@ -76,6 +83,20 @@ const organizationSchema = {
     addressLocality: "Doha",
     addressCountry: "QA",
   },
+  areaServed: [
+    { "@type": "Country", name: "Qatar" },
+    { "@type": "Place", name: "GCC" },
+  ],
+  knowsAbout: site.services.map((s) => s.title),
+};
+
+const websiteSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: site.name,
+  alternateName: site.shortName,
+  url: site.url,
+  publisher: { "@id": `${site.url}/#organization` },
 };
 
 export default function RootLayout({ children }) {
@@ -84,7 +105,7 @@ export default function RootLayout({ children }) {
       <body>
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify([organizationSchema, websiteSchema]) }}
         />
         <SiteHeader />
         {children}
