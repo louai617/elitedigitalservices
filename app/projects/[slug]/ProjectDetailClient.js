@@ -13,7 +13,7 @@ import {
   Sparkles
 } from "lucide-react";
 import TechStackItem from "@/components/projects/TechStackItem";
-import VideoCarousel from "@/components/projects/VideoCarousel";
+import VideoShowcase from "@/components/projects/VideoShowcase";
 
 export default function ProjectDetailClient({ project }) {
   return (
@@ -43,6 +43,9 @@ export default function ProjectDetailClient({ project }) {
         </div>
       </nav>
 
+      {project.videoGroups?.length ? (
+        <VideoShowcase project={project} />
+      ) : (
       <main className="max-w-5xl mx-auto px-4 pt-12">
         {/* Header */}
         <motion.div
@@ -68,26 +71,8 @@ export default function ProjectDetailClient({ project }) {
           </p>
         </motion.div>
 
-        {/* Videos, one titled carousel per client */}
-        {project.videoGroups?.map((group) => (
-          <motion.section
-            key={group.title}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="mb-16"
-          >
-            <h2 className="mb-8 text-3xl sm:text-4xl font-bold uppercase tracking-[0.15em] text-primary">
-              {group.title}
-            </h2>
-            <VideoCarousel videos={group.videos} label={`${group.title} videos`} />
-          </motion.section>
-        ))}
-
         {/* Banner Image */}
-        {/* Projects with videos lead with the carousel instead; their banner
-            is only the card image. */}
-        {project.project.banner && !project.videoGroups?.length && (
+        {project.project.banner && (
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -192,6 +177,7 @@ export default function ProjectDetailClient({ project }) {
           </aside>
         </div>
       </main>
+      )}
     </div>
   );
 }

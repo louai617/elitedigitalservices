@@ -134,3 +134,11 @@ html {
     @apply bg-background text-foreground;
   }
 }
+/* "Now playing" bars on video cards */
+@keyframes eq {
+  0%, 100% { transform: scaleY(0.35); }
+  50% { transform: scaleY(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  [class*="animate-[eq"] { animation: none !important; }
+}
