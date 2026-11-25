@@ -28,7 +28,7 @@ export default function VideoPoster({ video, className = "" }) {
   // `#t=0.1` makes Safari paint a frame without a poster.
   return (
     <video
-      src={`${video.fallback || video.src}#t=0.1`}
+      src={`${video.fallbacks?.at(-1) || video.src}#t=0.1`}
       preload="metadata"
       muted
       playsInline

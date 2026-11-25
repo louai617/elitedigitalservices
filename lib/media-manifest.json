@@ -1,0 +1,13 @@
+{
+  "_comment": "Single source of truth for hosted videos. Read by lib/projects-data.js (to render them) and by scripts/vps-setup.sh (to migrate and optimize them). 'original' is the file as first uploaded to Vercel Blob.",
+  "blobStore": "https://xn1wb9rstmi0a9aj.public.blob.vercel-storage.com",
+  "medical": [
+    { "name": "dr-rana", "title": "Dr. Rana", "original": "dr.rana%20final%20V6.mp4" },
+    { "name": "dr-nahed", "title": "Dr. Nahed", "original": "dr%20nahed%20v5.mp4" },
+    { "name": "dr-hazar", "title": "Dr. Hazar", "original": "dr%20hazar%20final%20v7%20corrected%202.mp4" },
+    { "name": "dr-ameer", "title": "Dr. Ameer", "original": "dr%20ameer%20v3.mp4" },
+    { "name": "dr-ala", "title": "Dr. Ala", "original": "dr%20ala%20v4.mp4" },
+    { "name": "dr-ala-2", "title": "Dr. Ala (2)", "original": "dr%20ala%201611%20v6.mp4" },
+    { "name": "dr-abu-jalala", "title": "Dr. Abu Jalala", "original": "dr%20abu%20jalala%20v4.mp4" }
+  ]
+}

@@ -83,10 +83,11 @@ export default function VideoCarousel({ videos, label }) {
                 preload={Math.abs(i - index) <= 1 ? "metadata" : "none"}
                 className="w-full h-full object-contain"
               >
-                {/* The browser tries these in order: the optimized file first,
-                    the original upload if that one is missing. */}
-                <source src={video.src} type="video/mp4" />
-                {video.fallback && <source src={video.fallback} type="video/mp4" />}
+                {/* The browser tries these in order and plays the first that
+                    exists: the local copy, then each fallback. */}
+                {[video.src, ...(video.fallbacks || [])].map((src) => (
+                  <source key={src} src={src} type="video/mp4" />
+                ))}
               </video>
             </div>
           ))}
