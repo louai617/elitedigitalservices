@@ -1,9 +1,9 @@
 <!doctype html><html><head><meta charset="utf-8"><style>
-  :root { --ink:#0A0A0C; --bone:#F6F4F0; --gold:#C9A227; }
+  :root { --ink:#0A0A0C; --bone:#F6F4F0; --gold:#EAB877; }
   * { margin:0; padding:0; box-sizing:border-box; }
   body { width:1600px; height:900px; background:var(--ink); font-family:'Inter',sans-serif; overflow:hidden; position:relative; }
   .glow { position:absolute; left:120px; top:90px; width:820px; height:720px;
-    background:radial-gradient(closest-side, rgba(201,162,39,.28), rgba(201,162,39,.08) 55%, transparent 75%); filter:blur(10px); }
+    background:radial-gradient(closest-side, rgba(234,184,119,.28), rgba(234,184,119,.08) 55%, transparent 75%); filter:blur(10px); }
   .vignette { position:absolute; inset:0; background:radial-gradient(120% 90% at 35% 50%, transparent 55%, rgba(0,0,0,.55)); }
   /* ECG line across the frame */
   svg.ecg { position:absolute; left:0; top:0; }
@@ -15,7 +15,7 @@
   .bl { left:0; bottom:0; border-bottom-width:16px; border-left-width:16px; }
   .br { right:0; bottom:0; border-bottom-width:16px; border-right-width:16px; }
   .cross { position:absolute; left:50%; top:50%; width:190px; height:190px; transform:translate(-50%,-50%);
-    filter:drop-shadow(0 0 30px rgba(201,162,39,.55)); }
+    filter:drop-shadow(0 0 30px rgba(234,184,119,.55)); }
   .cross::before, .cross::after { content:""; position:absolute; background:var(--gold); border-radius:14px; }
   .cross::before { left:65px; top:0; width:60px; height:190px; }
   .cross::after  { left:0; top:65px; width:190px; height:60px; }
@@ -33,10 +33,10 @@
   <div class="glow"></div>
   <svg class="ecg" width="1600" height="900" viewBox="0 0 1600 900">
     <defs><linearGradient id="fade" x1="0" x2="800" y1="0" y2="0" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#C9A227" stop-opacity="0"/>
-      <stop offset=".15" stop-color="#C9A227" stop-opacity=".45"/>
-      <stop offset=".8" stop-color="#C9A227" stop-opacity=".45"/>
-      <stop offset="1" stop-color="#C9A227" stop-opacity="0"/></linearGradient></defs>
+      <stop offset="0" stop-color="#EAB877" stop-opacity="0"/>
+      <stop offset=".15" stop-color="#EAB877" stop-opacity=".45"/>
+      <stop offset=".8" stop-color="#EAB877" stop-opacity=".45"/>
+      <stop offset="1" stop-color="#EAB877" stop-opacity="0"/></linearGradient></defs>
     <polyline fill="none" stroke="url(#fade)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"
       points="0,450 150,450 175,450 195,418 215,450 238,450 256,470 278,330 300,560 322,450 352,450 372,430 392,450 800,450"/>
   </svg>
@@ -51,7 +51,7 @@
     <h1>MEDICAL</h1>
     <div class="rule"></div>
     <div class="client">CLINICA JOELLE</div>
-    <div class="films">7 doctor films</div>
+    <div class="films">13 films</div>
   </div>
   <div class="vignette"></div>
 </body></html>
