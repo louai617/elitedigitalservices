@@ -1,0 +1,325 @@
+// EMS Team — the staff workspace at team.elitemedia.qa.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// CEO and PROJECT_MANAGER have full access. See lib/permissions.js.
+enum Role {
+  CEO
+  PROJECT_MANAGER
+  ADMIN
+  CREATIVE_DIRECTOR
+  STAFF
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  role         Role     @default(STAFF)
+  title        String? // job title shown in the team list, e.g. "Photographer"
+  phone        String?
+  color        String   @default("#EAB877") // calendar colour
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  sessions          Session[]
+  memberships       ProjectMember[]
+  projectsCreated   Project[]          @relation("ProjectCreator")
+  tasksAssigned     Task[]             @relation("TaskAssignee")
+  tasksCreated      Task[]             @relation("TaskCreator")
+  taskComments      TaskComment[]
+  eventsCreated     Event[]            @relation("EventCreator")
+  eventsAttending   EventAttendee[]
+  bookings          EquipmentBooking[]
+  filesUploaded     ProjectFile[]      @relation("FileUploader")
+  filesReviewed     ProjectFile[]      @relation("FileReviewer")
+  fileComments      FileComment[]
+  timeEntries       TimeEntry[]
+  leaveRequests     LeaveRequest[]     @relation("LeaveRequester")
+  leaveReviews      LeaveRequest[]     @relation("LeaveReviewer")
+}
+
+model Session {
+  id        String   @id // sha256 of the cookie token; the token itself is never stored
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Client {
+  id        String    @id @default(cuid())
+  name      String
+  company   String?
+  email     String?
+  phone     String?
+  notes     String?
+  createdAt DateTime  @default(now())
+  projects  Project[]
+}
+
+enum ServiceType {
+  PROGRAMMING
+  PHOTOGRAPHY
+  VIDEOGRAPHY
+  DESIGN
+  BRANDING
+  MARKETING
+  OTHER
+}
+
+enum ProjectStatus {
+  LEAD
+  PLANNING
+  IN_PROGRESS
+  REVIEW
+  DELIVERED
+  ON_HOLD
+}
+
+model Project {
+  id          String        @id @default(cuid())
+  name        String
+  clientId    String?
+  client      Client?       @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  service     ServiceType   @default(OTHER)
+  status      ProjectStatus @default(PLANNING)
+  description String?
+  startDate   DateTime?
+  dueDate     DateTime?
+  createdById String
+  createdBy   User          @relation("ProjectCreator", fields: [createdById], references: [id])
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  members     ProjectMember[]
+  tasks       Task[]
+  files       ProjectFile[]
+  events      Event[]
+  timeEntries TimeEntry[]
+}
+
+model ProjectMember {
+  projectId String
+  userId    String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([projectId, userId])
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  REVIEW
+  DONE
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+model Task {
+  id          String     @id @default(cuid())
+  projectId   String
+  project     Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  status      TaskStatus @default(TODO)
+  priority    Priority   @default(MEDIUM)
+  assigneeId  String?
+  assignee    User?      @relation("TaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  dueDate     DateTime?
+  createdById String
+  createdBy   User       @relation("TaskCreator", fields: [createdById], references: [id])
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  comments    TaskComment[]
+  timeEntries TimeEntry[]
+
+  @@index([projectId, status])
+  @@index([assigneeId])
+}
+
+model TaskComment {
+  id        String   @id @default(cuid())
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  body      String
+  createdAt DateTime @default(now())
+}
+
+enum EventType {
+  MEETING
+  SHOOT
+  DEADLINE
+  OTHER
+}
+
+model Event {
+  id          String    @id @default(cuid())
+  title       String
+  type        EventType @default(MEETING)
+  start       DateTime
+  end         DateTime
+  allDay      Boolean   @default(false)
+  location    String?
+  notes       String?
+  projectId   String?
+  project     Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  createdById String
+  createdBy   User      @relation("EventCreator", fields: [createdById], references: [id])
+  createdAt   DateTime  @default(now())
+
+  attendees EventAttendee[]
+  bookings  EquipmentBooking[]
+
+  @@index([start])
+}
+
+model EventAttendee {
+  eventId String
+  userId  String
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([eventId, userId])
+}
+
+enum EquipmentCategory {
+  CAMERA
+  LENS
+  LIGHTING
+  AUDIO
+  DRONE
+  GRIP
+  COMPUTER
+  OTHER
+}
+
+model Equipment {
+  id        String            @id @default(cuid())
+  name      String
+  category  EquipmentCategory @default(OTHER)
+  serial    String?
+  notes     String?
+  active    Boolean           @default(true)
+  createdAt DateTime          @default(now())
+  bookings  EquipmentBooking[]
+}
+
+model EquipmentBooking {
+  id          String    @id @default(cuid())
+  equipmentId String
+  equipment   Equipment @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
+  eventId     String?
+  event       Event?    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  start       DateTime
+  end         DateTime
+  note        String?
+  createdAt   DateTime  @default(now())
+
+  @@index([equipmentId, start, end])
+}
+
+enum FileStatus {
+  DRAFT
+  IN_REVIEW
+  APPROVED
+  CHANGES_REQUESTED
+}
+
+model ProjectFile {
+  id           String     @id @default(cuid())
+  projectId    String
+  project      Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name         String // original file name, for display and download
+  storedName   String     @unique // random name on disk
+  size         Int
+  mime         String
+  status       FileStatus @default(DRAFT)
+  uploadedById String
+  uploadedBy   User       @relation("FileUploader", fields: [uploadedById], references: [id])
+  reviewedById String?
+  reviewedBy   User?      @relation("FileReviewer", fields: [reviewedById], references: [id])
+  reviewedAt   DateTime?
+  createdAt    DateTime   @default(now())
+  comments     FileComment[]
+
+  @@index([projectId])
+}
+
+model FileComment {
+  id        String      @id @default(cuid())
+  fileId    String
+  file      ProjectFile @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  body      String
+  createdAt DateTime    @default(now())
+}
+
+model TimeEntry {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  taskId    String?
+  task      Task?    @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  date      DateTime @db.Date
+  minutes   Int
+  note      String?
+  createdAt DateTime @default(now())
+
+  @@index([userId, date])
+  @@index([projectId])
+}
+
+enum LeaveType {
+  ANNUAL
+  SICK
+  UNPAID
+  OTHER
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model LeaveRequest {
+  id           String      @id @default(cuid())
+  userId       String
+  user         User        @relation("LeaveRequester", fields: [userId], references: [id], onDelete: Cascade)
+  type         LeaveType   @default(ANNUAL)
+  start        DateTime    @db.Date
+  end          DateTime    @db.Date
+  reason       String?
+  status       LeaveStatus @default(PENDING)
+  reviewedById String?
+  reviewedBy   User?       @relation("LeaveReviewer", fields: [reviewedById], references: [id])
+  reviewedAt   DateTime?
+  createdAt    DateTime    @default(now())
+
+  @@index([start, end])
+}
