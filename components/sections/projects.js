@@ -13,23 +13,25 @@ import {
 
 import TechStackItem from "@/components/projects/TechStackItem";
 import VideoPoster from "@/components/projects/VideoPoster";
-import { projects, filters } from "@/lib/projects-data";
+import { filters } from "@/lib/projects-data";
+import { canOptimise } from "@/lib/image-hosts";
 
-export default function ProjectsSection() {
+/** Portfolio grid; `projects` comes from lib/portfolio.js (the CRM) via the page. */
+export default function ProjectsSection({ projects = [] }) {
   const [activeFilter, setActiveFilter] = useState("all");
   const [expandedProjects, setExpandedProjects] = useState(new Set());
 
   const filteredProjects = useMemo(() => {
     if (activeFilter === "all") return projects;
     return projects.filter((project) => project.category === activeFilter);
-  }, [activeFilter]);
+  }, [activeFilter, projects]);
 
   const availableFilters = useMemo(() => {
     return filters.filter((filter) => {
       if (filter.id === "all") return true;
       return projects.some((project) => project.category === filter.id);
     });
-  }, []);
+  }, [projects]);
 
   const handleFilterChange = (filterId) => {
     setActiveFilter(filterId);
@@ -137,6 +139,7 @@ export default function ProjectsSection() {
                             src={project.project.banner}
                             alt={project.title}
                             fill
+                            unoptimized={!canOptimise(project.project.banner)}
                             className="object-cover"
                             loading="lazy"
                           />

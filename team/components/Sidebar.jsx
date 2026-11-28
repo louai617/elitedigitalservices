@@ -5,13 +5,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, FolderKanban, ListChecks, CalendarDays, Camera, Users, Building2,
-  Clock, Palmtree, UserCog, LogOut, Menu, X,
+  Clock, Palmtree, UserCog, LogOut, Menu, X, Images,
 } from "lucide-react";
 import { Brand } from "./Logo";
 import { Avatar } from "./ui";
 import { logout } from "@/app/login/actions";
 
-const ICONS = { LayoutDashboard, FolderKanban, ListChecks, CalendarDays, Camera, Users, Building2, Clock, Palmtree, UserCog };
+const ICONS = { LayoutDashboard, FolderKanban, ListChecks, CalendarDays, Camera, Users, Building2, Clock, Palmtree, UserCog, Images };
 
 export default function Sidebar({ user, roleLabel, nav }) {
   const pathname = usePathname();

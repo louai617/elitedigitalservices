@@ -22,6 +22,15 @@ Dashboard · projects & clients · Kanban tasks with comments · shared calendar
 files with review/approval and comments · time tracking with CSV export ·
 leave requests and approvals · team management · client portal.
 
+## Portfolio
+
+**Portfolio** (CEO, Project Manager, Creative Director) manages the projects
+shown on elitemedia.qa: publish/hide, order, text, cover, gallery and video
+groups, optionally linked to a CRM project (“+ Add to portfolio” on a project).
+The website reads `/api/portfolio` and refreshes the moment you save.
+Uploads go to `/var/www/ems-media/portfolio` (served by nginx); videos get
+their index moved to the front for instant playback, plus a poster frame.
+
 ## Client portal
 
 Create logins on **Clients → Client portal access**. On a project, tick

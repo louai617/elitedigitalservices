@@ -20,6 +20,7 @@ export default async function AppLayout({ children }) {
     { href: "/calendar", label: "Calendar", icon: "CalendarDays" },
     { href: "/equipment", label: "Equipment", icon: "Camera" },
     { href: "/clients", label: "Clients", icon: "Building2" },
+    ...(can(user, "managePortfolio") ? [{ href: "/portfolio", label: "Portfolio", icon: "Images" }] : []),
     { href: "/time", label: "Time", icon: "Clock" },
     { href: "/leave", label: "Leave", icon: "Palmtree", badge: pendingLeave },
     { href: "/team", label: "Team", icon: "Users" },

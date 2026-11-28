@@ -15,6 +15,8 @@
 #   5. nginx site for team.<domain>, HTTPS once its DNS record points here
 #   6. nightly database backup, kept 14 days
 #   7. your first account (Project Manager), if none exists yet
+#   8. portfolio: imports the website's projects once, and connects the website
+#      so it shows what is published in the CRM
 
 set -euo pipefail
 
@@ -23,6 +25,8 @@ HOST="team.${DOMAIN}"
 APP_DIR="/var/www/ems"
 TEAM_DIR="${APP_DIR}/team"
 FILES_DIR="/var/www/ems-team-files"
+PORTFOLIO_MEDIA_DIR="/var/www/ems-media/portfolio"   # served by nginx at elitemedia.qa/media/portfolio/
+SITE_ENV="${APP_DIR}/.env.local"
 BACKUP_DIR="/var/backups/ems-team"
 APP_USER="ems"
 PORT=3010
@@ -44,7 +48,7 @@ sudo -u "$APP_USER" git -C "$APP_DIR" pull -q --ff-only || warn "could not pull;
 [ -d "$TEAM_DIR" ] || fail "No team/ folder in $APP_DIR — is the code up to date?"
 
 # ------------------------------------------------------------ 1. database --
-bold "1/7  Database"
+bold "1/8  Database"
 if ! command -v psql >/dev/null; then
   apt-get update -qq && apt-get install -y -qq postgresql >/dev/null
 fi
@@ -72,23 +76,34 @@ ENV
   ok "created database ${DB_NAME} (password generated, stored only in team/.env)"
 fi
 
+# Settings both apps need for the portfolio link (added once, kept after).
+add_env() { grep -q "^$2=" "$1" 2>/dev/null || echo "$2=\"$3\"" >> "$1"; }
+SECRET=$(grep -h '^PORTFOLIO_REVALIDATE_SECRET=' "$ENV_FILE" "$SITE_ENV" 2>/dev/null | head -1 | cut -d'"' -f2)
+[ -n "$SECRET" ] || SECRET=$(openssl rand -hex 32)
+add_env "$ENV_FILE" PORTFOLIO_MEDIA_DIR "$PORTFOLIO_MEDIA_DIR"
+add_env "$ENV_FILE" WEBSITE_REVALIDATE_URL "http://127.0.0.1:3000/api/revalidate-portfolio"
+add_env "$ENV_FILE" PORTFOLIO_REVALIDATE_SECRET "$SECRET"
+add_env "$ENV_FILE" PUBLIC_SITE_URL "https://${DOMAIN}"
+
 # ---------------------------------------------------------------- 2. files --
-bold "2/7  Files folder"
-mkdir -p "$FILES_DIR"
+bold "2/8  Files folder"
+mkdir -p "$FILES_DIR" "$PORTFOLIO_MEDIA_DIR"
+chown "$APP_USER:$APP_USER" "$PORTFOLIO_MEDIA_DIR"
+chmod 755 "$PORTFOLIO_MEDIA_DIR"
 chown -R "$APP_USER:$APP_USER" "$FILES_DIR" "$TEAM_DIR"
 chmod 700 "$FILES_DIR"
 chmod 600 "$ENV_FILE"
 ok "uploads go to $FILES_DIR (private: served only to signed-in project members)"
 
 # ---------------------------------------------------------------- 3. build --
-bold "3/7  Install, migrate, build"
+bold "3/8  Install, migrate, build"
 as_app "npm ci --no-audit --no-fund --loglevel=error"
 as_app "npx prisma migrate deploy" | grep -E "applied|No pending" || true
 as_app "npm run build --silent" >/dev/null
 ok "built"
 
 # -------------------------------------------------------------- 4. service --
-bold "4/7  Service"
+bold "4/8  Service"
 cat > /etc/systemd/system/ems-team.service <<UNIT
 [Unit]
 Description=EMS Team workspace (Next.js)
@@ -115,7 +130,7 @@ for i in $(seq 1 30); do curl -fs -o /dev/null "http://127.0.0.1:${PORT}/api/hea
 curl -fs -o /dev/null "http://127.0.0.1:${PORT}/api/health" && ok "running on port ${PORT}" || fail "not responding — journalctl -u ems-team -n 50"
 
 # ---------------------------------------------------------------- 5. nginx --
-bold "5/7  Web server"
+bold "5/8  Web server"
 SITE=/etc/nginx/sites-available/ems-team
 if [ ! -f "$SITE" ]; then
   cat > "$SITE" <<NGINX
@@ -159,7 +174,7 @@ else
 fi
 
 # -------------------------------------------------------------- 6. backups --
-bold "6/7  Backups"
+bold "6/8  Backups"
 mkdir -p "$BACKUP_DIR" && chmod 700 "$BACKUP_DIR"
 cat > /etc/cron.d/ems-team-backup <<CRON
 # Nightly database dump for EMS Team, 14 days kept.
@@ -169,7 +184,7 @@ CRON
 ok "nightly at 02:30 → ${BACKUP_DIR}"
 
 # -------------------------------------------------------- 7. first account --
-bold "7/7  Accounts"
+bold "7/8  Accounts"
 USERS=$(sudo -u postgres psql -d "$DB_NAME" -tAc 'SELECT count(*) FROM "User"')
 if [ "$USERS" = "0" ]; then
   echo "  Create your own account (Project Manager — full access):"
@@ -177,6 +192,20 @@ if [ "$USERS" = "0" ]; then
   echo "  Add the CEO and everyone else from the Team page once you're signed in."
 else
   ok "${USERS} account(s) exist — manage them from the Team page"
+fi
+
+# ------------------------------------------------------------ 8. portfolio --
+bold "8/8  Portfolio"
+as_app "node scripts/import-portfolio.mjs" | sed 's/^/  /'
+# Point the website at the CRM, then restart it so it reads the new settings.
+if ! grep -q '^PORTFOLIO_API_URL=' "$SITE_ENV" 2>/dev/null; then
+  add_env "$SITE_ENV" PORTFOLIO_API_URL "http://127.0.0.1:${PORT}"
+  add_env "$SITE_ENV" PORTFOLIO_REVALIDATE_SECRET "$SECRET"
+  chown "$APP_USER:$APP_USER" "$SITE_ENV"; chmod 600 "$SITE_ENV"
+  sudo -u "$APP_USER" -H bash -c "cd '$APP_DIR' && npm run build --silent" >/dev/null && systemctl restart ems
+  ok "website now shows the portfolio published in the CRM"
+else
+  ok "website already connected"
 fi
 
 printf '\n\033[1mDone\033[0m\n'

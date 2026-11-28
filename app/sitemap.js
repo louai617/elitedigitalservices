@@ -1,7 +1,7 @@
 import { getPublishedArticles } from '@/lib/blog/store';
 import { CATEGORIES } from '@/lib/blog/schema';
 import { site } from '@/lib/site-config';
-import { projects } from '@/lib/projects-data';
+import { getPortfolio } from '@/lib/portfolio';
 import { projectVideos } from '@/lib/project-seo';
 
 // Regenerated on the same cadence as the blog, so a new article is listed
@@ -9,7 +9,7 @@ import { projectVideos } from '@/lib/project-seo';
 export const revalidate = 300;
 
 export default async function sitemap() {
-  const articles = await getPublishedArticles();
+  const [articles, projects] = await Promise.all([getPublishedArticles(), getPortfolio()]);
 
   // Note: /projects is only a redirect to the home page's projects section,
   // so it is deliberately absent — the case-study pages below are the real

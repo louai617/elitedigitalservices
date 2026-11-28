@@ -1,23 +1,20 @@
-import React from "react";
-import Link from "next/link";
-import { 
-  ArrowLeft
-} from "lucide-react";
-import { getProjectBySlug, projects } from "@/lib/projects-data";
+import { notFound } from "next/navigation";
+import { getPortfolio, getPortfolioItem } from "@/lib/portfolio";
 import ProjectDetailClient from "./ProjectDetailClient";
 import { site } from "@/lib/site-config";
 import { projectDescription, projectImage, projectSchema } from "@/lib/project-seo";
 
-// Pre-generate all project routes at build time
+// Pre-render the portfolio at build time; items published later in the CRM
+// render on first visit (dynamicParams) and are then cached.
 export async function generateStaticParams() {
-  return projects.map((project) => ({
+  return (await getPortfolio()).map((project) => ({
     slug: project.slug,
   }));
 }
 
 export async function generateMetadata({ params }) {
   const { slug } = await params;
-  const project = getProjectBySlug(slug);
+  const project = await getPortfolioItem(slug);
   if (!project) return { title: "Project not found", robots: { index: false } };
 
   const service = project.service.split("-").join(" ");
@@ -46,24 +43,8 @@ export async function generateMetadata({ params }) {
 
 export default async function ProjectDetailPage({ params }) {
   const { slug } = await params;
-  const project = getProjectBySlug(slug);
-
-  if (!project) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background px-4">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold mb-4">Project Not Found</h1>
-          <p className="text-muted-foreground mb-8">The project you're looking for doesn't exist.</p>
-          <Link 
-            href="/#projects" 
-            className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-full hover:bg-primary/90 transition-all"
-          >
-            <ArrowLeft size={18} /> Back to Projects
-          </Link>
-        </div>
-      </div>
-    );
-  }
+  const project = await getPortfolioItem(slug);
+  if (!project) notFound();
 
   return (
     <>

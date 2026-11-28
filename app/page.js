@@ -8,7 +8,10 @@ import LiquidGlassNavbar from "@/components/ui/glassy-bar";
 import { VisionSection } from "@/components/sections/Vision";
 import { SectionDivider } from "@/components/ui/section-divider";
 
-export default function Home() {
+import { getPortfolio } from "@/lib/portfolio";
+
+export default async function Home() {
+  const projects = await getPortfolio();
   return (
     <div>
       <div id="showcase">
@@ -29,7 +32,7 @@ export default function Home() {
       <LiquidGlassNavbar />
 
       <div id="projects">
-        <ProjectsSection />
+        <ProjectsSection projects={projects} />
       </div>
       <SectionDivider />
       <div id="contact">

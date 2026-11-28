@@ -27,6 +27,7 @@ export default async function ProjectPage({ params, searchParams }) {
   const project = await getVisibleProject(me, id, {
     client: true,
     members: { include: { user: userSel } },
+    portfolio: { select: { id: true, published: true, slug: true } },
   });
 
   const [tasks, files, events, time, reviewCount] = await Promise.all([
@@ -99,6 +100,18 @@ export default async function ProjectPage({ params, searchParams }) {
                   <button className="btn btn-ghost btn-sm ml-2">Set</button>
                 </form>
                 <Link href={`/projects/${project.id}/edit`} className="btn btn-ghost btn-sm"><Pencil size={14} />Edit</Link>
+              </>
+            )}
+            {can(me, "managePortfolio") && (
+              <>
+                {project.portfolio ? (
+                  <Link href={`/portfolio/${project.portfolio.id}`} className="btn btn-ghost btn-sm">
+                    <span className={`h-2 w-2 rounded-full ${project.portfolio.published ? "bg-emerald-400" : "bg-mute"}`} />
+                    Portfolio · {project.portfolio.published ? "Live" : "Hidden"}
+                  </Link>
+                ) : (
+                  <Link href={`/portfolio/new?project=${project.id}`} className="btn btn-ghost btn-sm">+ Add to portfolio</Link>
+                )}
               </>
             )}
           </div>

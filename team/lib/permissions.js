@@ -26,6 +26,7 @@ const RULES = {
   approveLeave: [...FULL, "ADMIN"],
   viewAllTime: [...FULL, "ADMIN", "CREATIVE_DIRECTOR"],
   manageAnyEvent: [...FULL, "ADMIN", "CREATIVE_DIRECTOR"],
+  managePortfolio: [...FULL, "CREATIVE_DIRECTOR"],
 };
 
 export function can(user, action) {

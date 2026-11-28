@@ -113,6 +113,7 @@ model Project {
   events      Event[]
   timeEntries TimeEntry[]
   messages    ProjectMessage[]
+  portfolio   PortfolioItem?
 }
 
 model ProjectMember {
@@ -353,4 +354,35 @@ model ProjectMessage {
   createdAt DateTime @default(now())
 
   @@index([projectId, createdAt])
+}
+
+/// A project as shown in the public portfolio on elitemedia.qa. The website
+/// reads published items from /api/portfolio. May be linked to a CRM project.
+model PortfolioItem {
+  id          String   @id @default(cuid())
+  slug        String   @unique // URL on the website: /projects/<slug>
+  title       String
+  category    String // website filter: web, ecommerce, mobile, ai, design, video, blockchain, automation
+  service     String   @default("")
+  year        String   @default("")
+  description String   @default("")
+  tagline     String?
+  content     String?
+  result      String?
+  link        String?
+  github      String?
+  tech        String[]
+  banner      String? // cover image URL or /media/portfolio/... path
+  images      String[]
+  videoGroups Json? // [{ title, videos: [{ title, src, poster, fallbacks }] }]
+  highlights  Json?
+  ctaTitle    String?
+  published   Boolean  @default(false)
+  sortOrder   Int      @default(0)
+  projectId   String?  @unique
+  project     Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([published, sortOrder])
 }

@@ -14,5 +14,5 @@ export function proxy(request) {
 }
 
 export const config = {
-  matcher: ["/((?!login|_next/|favicon|logo|api/health).*)"],
+  matcher: ["/((?!login|_next/|favicon|logo|api/health|api/portfolio|media/portfolio/).*)"],
 };
