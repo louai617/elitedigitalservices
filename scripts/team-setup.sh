@@ -78,7 +78,8 @@ fi
 
 # Settings both apps need for the portfolio link (added once, kept after).
 add_env() { grep -q "^$2=" "$1" 2>/dev/null || echo "$2=\"$3\"" >> "$1"; }
-SECRET=$(grep -h '^PORTFOLIO_REVALIDATE_SECRET=' "$ENV_FILE" "$SITE_ENV" 2>/dev/null | head -1 | cut -d'"' -f2)
+# (`|| true`: no match yet is normal, and must not stop the script under pipefail.)
+SECRET=$( { grep -h '^PORTFOLIO_REVALIDATE_SECRET=' "$ENV_FILE" "$SITE_ENV" 2>/dev/null || true; } | head -1 | cut -d'"' -f2)
 [ -n "$SECRET" ] || SECRET=$(openssl rand -hex 32)
 add_env "$ENV_FILE" PORTFOLIO_MEDIA_DIR "$PORTFOLIO_MEDIA_DIR"
 add_env "$ENV_FILE" WEBSITE_REVALIDATE_URL "http://127.0.0.1:3000/api/revalidate-portfolio"
