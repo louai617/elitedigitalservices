@@ -2,7 +2,7 @@
 
 import { useOptimistic, useState, useTransition } from "react";
 import Link from "next/link";
-import { CalendarClock, MessageSquare } from "lucide-react";
+import { CalendarClock, Eye, MessageSquare } from "lucide-react";
 import { moveTask } from "@/app/(app)/projects/actions";
 import { PRIORITY, TASK_STATUS } from "@/lib/format";
 import { Avatar, Badge } from "./ui";
@@ -75,6 +75,7 @@ export default function KanbanBoard({ tasks, editableIds, showProject = false })
                       <div className="mb-2 flex items-center gap-2">
                         <Badge tone={PRIORITY[t.priority].tone}>{PRIORITY[t.priority].label}</Badge>
                         {showProject && <span className="truncate text-xs text-mute">{t.projectName}</span>}
+                        {t.clientVisible && <span title="Client sees this milestone" className="ml-auto text-gold"><Eye size={13} /></span>}
                       </div>
                       <Link href={`/tasks/${t.id}`} className="block text-sm font-medium leading-snug hover:text-gold">{t.title}</Link>
                       <div className="mt-3 flex items-center gap-3 text-xs text-mute">

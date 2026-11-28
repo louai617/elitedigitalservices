@@ -8,6 +8,7 @@ export const ROLES = {
   ADMIN: { label: "Admin", rank: 3 },
   CREATIVE_DIRECTOR: { label: "Creative Director", rank: 3 },
   STAFF: { label: "Staff", rank: 1 },
+  CLIENT: { label: "Client", rank: 0 },
 };
 
 const FULL = ["CEO", "PROJECT_MANAGER"];
@@ -37,13 +38,15 @@ export const isFull = (user) => FULL.includes(user?.role);
 
 /** Roles a user may hand out. Only CEO/PM can create CEO/PM accounts. */
 export function assignableRoles(user) {
-  if (isFull(user)) return Object.keys(ROLES);
+  // Client logins are made from the Clients page, tied to a company.
+  if (isFull(user)) return Object.keys(ROLES).filter((r) => r !== "CLIENT");
   if (can(user, "manageUsers")) return ["ADMIN", "CREATIVE_DIRECTOR", "STAFF"];
   return [];
 }
 
 /** Whether `user` may edit the account `target`. Admins cannot touch CEO/PM accounts. */
 export function canEditUser(user, target) {
+  if (target.role === "CLIENT") return can(user, "manageClients");
   if (!can(user, "manageUsers")) return false;
   if (isFull(user)) return true;
   return !FULL.includes(target.role);
@@ -51,6 +54,7 @@ export function canEditUser(user, target) {
 
 /** Prisma filter for the projects a user may see. */
 export function projectScope(user) {
+  if (user.role === "CLIENT") return { clientId: user.clientId ?? "__none__" };
   return can(user, "seeAllProjects") ? {} : { members: { some: { userId: user.id } } };
 }
 

@@ -24,7 +24,7 @@ export async function createUser(_prev, fd) {
       email, name, role,
       title: str(fd, "title"),
       phone: str(fd, "phone"),
-      color: str(fd, "color") || colorForIndex(await db.user.count()),
+      color: str(fd, "color") || colorForIndex(await db.user.count({ where: { role: { not: "CLIENT" } } })),
       passwordHash: await hashPassword(password),
     },
   });

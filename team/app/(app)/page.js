@@ -21,7 +21,7 @@ export default async function Dashboard() {
   const hour = Number(new Date().toLocaleString("en-GB", { hour: "2-digit", hour12: false, timeZone: "Asia/Qatar" }));
   const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
 
-  const [myTasks, overdue, weekMinutes, agenda, toReview, activeProjects] = await Promise.all([
+  const [myTasks, overdue, weekMinutes, agenda, toReview, activeProjects, fromClients] = await Promise.all([
     db.task.findMany({
       where: { assigneeId: me.id, status: { not: "DONE" } },
       orderBy: [{ dueDate: { sort: "asc", nulls: "last" } }, { priority: "desc" }],
@@ -39,6 +39,12 @@ export default async function Dashboard() {
       orderBy: { dueDate: { sort: "asc", nulls: "last" } },
       take: 5,
       include: { tasks: { select: { status: true } }, client: { select: { name: true } } },
+    }),
+    db.projectMessage.findMany({
+      where: { author: { role: "CLIENT" }, project: projectScope(me), createdAt: { gte: new Date(Date.now() - 14 * 864e5) } },
+      orderBy: { createdAt: "desc" },
+      take: 5,
+      include: { author: { select: { name: true, color: true } }, project: { select: { id: true, name: true } } },
     }),
   ]);
 
@@ -126,6 +132,24 @@ export default async function Dashboard() {
               </ul>
             )}
           </Card>
+
+          {fromClients.length > 0 && (
+            <Card title="From clients" bodyClass="">
+              <ul className="divide-y divide-line">
+                {fromClients.map((m) => (
+                  <li key={m.id}>
+                    <Link href={`/projects/${m.project.id}?tab=client`} className="flex gap-3 px-5 py-3 transition hover:bg-white/[0.02]">
+                      <Avatar user={m.author} size={26} />
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm">{m.body.split("\n")[0]}</span>
+                        <span className="block truncate text-xs text-mute">{m.author.name} · {m.project.name} · {fmtShort(m.createdAt)}</span>
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          )}
 
           {reviewer && (
             <Card title={`Waiting for your review · ${toReview.length}`} bodyClass="">

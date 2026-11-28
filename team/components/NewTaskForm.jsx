@@ -28,6 +28,11 @@ export default function NewTaskForm({ projectId, members, canAssign, meId }) {
           {Object.entries(PRIORITY).map(([k, v]) => <option key={k} value={k}>{v.label} priority</option>)}
         </select>
         <input type="date" name="dueDate" className="input md:col-span-2" aria-label="Due date" />
+        {canAssign && (
+          <label className="flex items-center gap-2 text-sm text-mute md:col-span-6">
+            <input type="checkbox" name="clientVisible" className="accent-[#EAB877]" /> Show to the client as a milestone
+          </label>
+        )}
         <div className="md:col-span-6"><SubmitButton className="btn btn-primary btn-sm">Add task</SubmitButton></div>
       </form>
     </details>

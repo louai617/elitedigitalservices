@@ -6,6 +6,7 @@ import { can, projectScope } from "@/lib/permissions";
 import { Card, Empty, PageHeader } from "@/components/ui";
 import { ConfirmButton, SubmitButton } from "@/components/client-ui";
 import { deleteClient, saveClient } from "./actions";
+import PortalAccess from "./PortalAccess";
 
 export const metadata = { title: "Clients" };
 
@@ -30,7 +31,10 @@ export default async function ClientsPage({ searchParams }) {
   const manage = can(me, "manageClients");
   const clients = await db.client.findMany({
     orderBy: { name: "asc" },
-    include: { projects: { where: projectScope(me), select: { id: true, name: true, status: true } } },
+    include: {
+      projects: { where: projectScope(me), select: { id: true, name: true, status: true } },
+      users: { where: { role: "CLIENT" }, orderBy: { name: "asc" }, select: { id: true, name: true, email: true, active: true } },
+    },
   });
 
   return (
@@ -66,13 +70,14 @@ export default async function ClientsPage({ searchParams }) {
                             ))}
                           </div>
                         )}
+                        {manage && <PortalAccess clientId={c.id} users={c.users} />}
                       </div>
                       {manage && (
                         <div className="flex gap-2">
                           <Link href={`/clients?edit=${c.id}`} className="btn btn-ghost btn-sm">Edit</Link>
                           <form action={deleteClient}>
                             <input type="hidden" name="id" value={c.id} />
-                            <ConfirmButton message={`Delete ${c.name}? Their projects stay, without a client.`}>Delete</ConfirmButton>
+                            <ConfirmButton message={`Delete ${c.name}? Their projects stay, without a client; their portal logins are removed.`}>Delete</ConfirmButton>
                           </form>
                         </div>
                       )}

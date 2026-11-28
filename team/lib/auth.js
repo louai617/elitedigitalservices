@@ -52,8 +52,28 @@ export async function getUser() {
   return session.user;
 }
 
-/** For pages and actions: the user, or off to the login page. */
+/**
+ * For staff pages and actions: a signed-in staff member. Client accounts are
+ * sent to their portal, so nothing in the staff app is reachable by them.
+ */
 export async function requireUser() {
+  const user = await getUser();
+  if (!user) redirect("/login");
+  if (user.role === "CLIENT") redirect("/portal");
+  return user;
+}
+
+/** For portal pages and actions: a signed-in client account with a company. */
+export async function requireClient() {
+  const user = await getUser();
+  if (!user) redirect("/login");
+  if (user.role !== "CLIENT") redirect("/");
+  if (!user.clientId) redirect("/login");
+  return user;
+}
+
+/** Either kind of account — only for things both may do (their own password). */
+export async function requireAnyUser() {
   const user = await getUser();
   if (!user) redirect("/login");
   return user;

@@ -16,6 +16,10 @@ export async function getVisibleProject(user, id, include) {
 
 /** Same check without a 404, for actions and API routes. */
 export async function canSeeProject(user, projectId) {
+  if (user.role === "CLIENT") {
+    const p = await db.project.findUnique({ where: { id: projectId }, select: { clientId: true } });
+    return !!p && !!user.clientId && p.clientId === user.clientId;
+  }
   if (can(user, "seeAllProjects")) return true;
   return !!(await db.projectMember.findUnique({ where: { projectId_userId: { projectId, userId: user.id } } }));
 }

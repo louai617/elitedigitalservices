@@ -11,6 +11,7 @@ export const metadata = { title: "Team" };
 export default async function TeamPage() {
   const me = await requireUser();
   const users = await db.user.findMany({
+    where: { role: { not: "CLIENT" } },
     orderBy: [{ active: "desc" }, { name: "asc" }],
     select: { id: true, name: true, email: true, role: true, title: true, phone: true, color: true, active: true },
   });

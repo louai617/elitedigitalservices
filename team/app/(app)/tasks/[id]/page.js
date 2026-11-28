@@ -90,6 +90,11 @@ export default async function TaskPage({ params }) {
                   </Field>
                 )}
                 <Field label="Due date"><input type="date" name="dueDate" defaultValue={task.dueDate ? dohaDay(task.dueDate) : ""} className="input" /></Field>
+                {manager && (
+                  <label className="flex items-center gap-2 text-sm text-mute">
+                    <input type="checkbox" name="clientVisible" defaultChecked={task.clientVisible} className="accent-[#EAB877]" /> Client sees this as a milestone
+                  </label>
+                )}
                 <SubmitButton className="btn btn-primary btn-sm">Save</SubmitButton>
               </form>
             </Card>

@@ -18,7 +18,7 @@ export async function login(_prev, formData) {
     return { error: "Email or password is incorrect." };
   }
   await createSession(user.id);
-  redirect("/");
+  redirect(user.role === "CLIENT" ? "/portal" : "/");
 }
 
 export async function logout() {

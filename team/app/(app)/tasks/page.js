@@ -21,11 +21,11 @@ export default async function TasksPage({ searchParams }) {
       orderBy: [{ priority: "desc" }, { dueDate: { sort: "asc", nulls: "last" } }],
       include: { project: { select: { name: true } }, assignee: { select: { id: true, name: true, color: true } }, _count: { select: { comments: true } } },
     }),
-    manager ? db.user.findMany({ where: { active: true }, orderBy: { name: "asc" }, select: { id: true, name: true } }) : [],
+    manager ? db.user.findMany({ where: { active: true, role: { not: "CLIENT" } }, orderBy: { name: "asc" }, select: { id: true, name: true } }) : [],
   ]);
 
   const boardTasks = tasks.map((t) => ({
-    id: t.id, title: t.title, status: t.status, priority: t.priority, dueDate: t.dueDate,
+    id: t.id, title: t.title, status: t.status, priority: t.priority, dueDate: t.dueDate, clientVisible: t.clientVisible,
     assignee: t.assignee, comments: t._count.comments, projectName: t.project.name,
   }));
   const title = !who ? "My tasks" : who === "all" ? "All tasks" : `${people.find((p) => p.id === who)?.name || "Someone"}'s tasks`;

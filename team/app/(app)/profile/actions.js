@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
-import { hashPassword, requireUser, validatePassword, verifyPassword, createSession } from "@/lib/auth";
+import { hashPassword, requireAnyUser as requireUser, validatePassword, verifyPassword, createSession } from "@/lib/auth";
 import { str } from "@/lib/guard";
 
 export async function updateProfile(_prev, fd) {
@@ -12,6 +12,7 @@ export async function updateProfile(_prev, fd) {
     data: { name: str(fd, "name") || me.name, phone: str(fd, "phone"), color: str(fd, "color") || me.color },
   });
   revalidatePath("/", "layout");
+  revalidatePath("/portal", "layout");
   return { ok: "Profile saved." };
 }
 

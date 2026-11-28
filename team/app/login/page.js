@@ -6,7 +6,8 @@ import LoginForm from "./LoginForm";
 export const metadata = { title: "Sign in" };
 
 export default async function LoginPage() {
-  if (await getUser()) redirect("/");
+  const user = await getUser();
+  if (user) redirect(user.role === "CLIENT" ? "/portal" : "/");
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden px-4">
       <div className="pointer-events-none absolute -top-40 left-1/2 h-[480px] w-[720px] -translate-x-1/2 rounded-full bg-gold/15 blur-[130px]" />
@@ -14,7 +15,7 @@ export default async function LoginPage() {
         <div className="mb-8 flex flex-col items-center text-center">
           <LogoMark className="h-14 w-14" gid="ems-gold-login" />
           <h1 className="mt-5 text-2xl font-bold">EMS Team Space</h1>
-          <p className="mt-1 text-sm text-mute">Sign in with your staff account</p>
+          <p className="mt-1 text-sm text-mute">Team members and clients sign in here</p>
         </div>
         <div className="card p-6">
           <LoginForm />

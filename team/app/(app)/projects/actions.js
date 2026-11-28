@@ -105,6 +105,7 @@ export async function createTask(fd) {
       priority: pick(str(fd, "priority"), PRIORITIES, "MEDIUM"),
       assigneeId,
       dueDate: parseDay(str(fd, "dueDate")),
+      clientVisible: can(me, "manageAnyTask") && fd.get("clientVisible") === "on",
       createdById: me.id,
     },
   });
@@ -140,7 +141,7 @@ export async function updateTask(fd) {
       status: pick(str(fd, "status"), TSTATUS, task.status),
       priority: pick(str(fd, "priority"), PRIORITIES, task.priority),
       dueDate: parseDay(str(fd, "dueDate")),
-      ...(manager && { assigneeId: str(fd, "assigneeId") }),
+      ...(manager && { assigneeId: str(fd, "assigneeId"), clientVisible: fd.get("clientVisible") === "on" }),
     },
   });
   revalidatePath(`/tasks/${task.id}`);
@@ -220,6 +221,32 @@ export async function reviewFile(status, fd) {
   if (status !== "APPROVED" && status !== "CHANGES_REQUESTED") throw new Error("Unknown decision.");
   fd.set("status", status);
   return setFileStatus(fd);
+}
+
+/** Show a file to the client (or take it back). Managers and reviewers only. */
+export async function setFileShared(fd) {
+  const me = await requireUser();
+  if (!can(me, "reviewFiles") && !can(me, "editProject")) throw new Error("Only the creative director, CEO or project manager can share with the client.");
+  const file = await db.projectFile.findUnique({ where: { id: String(fd.get("id")) } });
+  if (!file) throw new Error("File not found.");
+  const shared = fd.get("shared") === "true";
+  await db.projectFile.update({
+    where: { id: file.id },
+    data: shared
+      ? { sharedWithClient: true, sharedAt: new Date(), clientStatus: "PENDING", clientDecidedAt: null }
+      : { sharedWithClient: false, clientStatus: null, clientDecidedAt: null },
+  });
+  revalidatePath(`/projects/${file.projectId}`);
+}
+
+/** Team side of the client conversation. */
+export async function sendProjectMessage(fd) {
+  const me = await requireUser();
+  const projectId = String(fd.get("projectId"));
+  await assertProject(me, projectId);
+  const body = str(fd, "body");
+  if (body) await db.projectMessage.create({ data: { projectId, authorId: me.id, body: body.slice(0, 5000) } });
+  revalidatePath(`/projects/${projectId}`);
 }
 
 export async function addFileComment(fd) {

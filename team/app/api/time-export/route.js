@@ -7,7 +7,7 @@ const csv = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
 /** Month of time entries as CSV, for payroll and client billing. */
 export async function GET(request) {
   const user = await getUser();
-  if (!user || !can(user, "viewAllTime")) return new Response("Forbidden", { status: 403 });
+  if (!user || user.role === "CLIENT" || !can(user, "viewAllTime")) return new Response("Forbidden", { status: 403 });
   const month = new URL(request.url).searchParams.get("month");
   if (!/^\d{4}-\d{2}$/.test(month || "")) return new Response("Bad month", { status: 400 });
   const from = new Date(`${month}-01T00:00:00Z`);

@@ -13,7 +13,7 @@ export default async function NewProjectPage() {
   if (!can(me, "createProject")) redirect("/projects");
   const [clients, users] = await Promise.all([
     db.client.findMany({ orderBy: { name: "asc" } }),
-    db.user.findMany({ where: { active: true }, orderBy: { name: "asc" }, select: { id: true, name: true, title: true, color: true } }),
+    db.user.findMany({ where: { active: true, role: { not: "CLIENT" } }, orderBy: { name: "asc" }, select: { id: true, name: true, title: true, color: true } }),
   ]);
   return (
     <>

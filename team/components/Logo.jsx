@@ -21,14 +21,14 @@ export function LogoMark({ className = "h-8 w-8", gid = "ems-gold" }) {
   );
 }
 
-export function Brand({ gid = "ems-gold-brand" }) {
+export function Brand({ gid = "ems-gold-brand", label = "TEAM SPACE" }) {
   return (
     <span className="flex items-center gap-2.5">
       <LogoMark gid={gid} />
       <span className="flex flex-col leading-none">
         <span className="text-sm font-semibold tracking-[0.2em]">ELITE</span>
         <span className="mt-1 bg-gradient-to-r from-gold-deep to-gold-light bg-clip-text text-[0.55rem] font-medium tracking-[0.3em] text-transparent">
-          TEAM SPACE
+          {label}
         </span>
       </span>
     </span>

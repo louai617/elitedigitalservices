@@ -4,12 +4,13 @@ import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { can, canEditTask } from "@/lib/permissions";
 import { getVisibleProject } from "@/lib/access";
-import { EVENT_TYPES, PROJECT_STATUS, SERVICE_LABELS, fmtDate, fmtDateTime, fmtHours } from "@/lib/format";
+import { CLIENT_DECISION, EVENT_TYPES, PROJECT_STATUS, SERVICE_LABELS, fmtDate, fmtDateTime, fmtHours } from "@/lib/format";
 import { Avatar, Badge, Card, Empty, StatusBadge } from "@/components/ui";
 import KanbanBoard from "@/components/KanbanBoard";
 import NewTaskForm from "@/components/NewTaskForm";
 import FilesPanel from "@/components/FilesPanel";
-import { setProjectStatus } from "../actions";
+import MessageThread from "@/components/MessageThread";
+import { sendProjectMessage, setProjectStatus } from "../actions";
 
 export async function generateMetadata({ params }) {
   const { id } = await params;
@@ -17,7 +18,7 @@ export async function generateMetadata({ params }) {
   return { title: p?.name || "Project" };
 }
 
-const userSel = { select: { id: true, name: true, color: true, title: true } };
+const userSel = { select: { id: true, name: true, color: true, title: true, role: true } };
 
 export default async function ProjectPage({ params, searchParams }) {
   const { id } = await params;
@@ -45,12 +46,20 @@ export default async function ProjectPage({ params, searchParams }) {
     db.timeEntry.groupBy({ by: ["userId"], where: { projectId: id }, _sum: { minutes: true } }),
     db.projectFile.count({ where: { projectId: id, status: "IN_REVIEW" } }),
   ]);
+  const [messages, portalUsers, clientFiles] = tab === "client"
+    ? await Promise.all([
+        db.projectMessage.findMany({ where: { projectId: id }, orderBy: { createdAt: "asc" }, include: { author: userSel } }),
+        project.clientId ? db.user.findMany({ where: { clientId: project.clientId, role: "CLIENT", active: true }, select: { name: true, email: true } }) : [],
+        db.projectFile.findMany({ where: { projectId: id, sharedWithClient: true }, orderBy: { sharedAt: "desc" }, select: { id: true, name: true, clientStatus: true, clientDecidedAt: true } }),
+      ])
+    : [[], [], []];
+  const clientMessages = await db.projectMessage.count({ where: { projectId: id, author: { role: "CLIENT" } } });
 
   const members = project.members.map((m) => m.user);
   const totalMinutes = time.reduce((s, t) => s + (t._sum.minutes || 0), 0);
   const done = tasks.filter((t) => t.status === "DONE").length;
   const boardTasks = tasks.map((t) => ({
-    id: t.id, title: t.title, status: t.status, priority: t.priority, dueDate: t.dueDate,
+    id: t.id, title: t.title, status: t.status, priority: t.priority, dueDate: t.dueDate, clientVisible: t.clientVisible,
     assignee: t.assignee, comments: t._count.comments,
   }));
   const editableIds = tasks.filter((t) => canEditTask(me, t)).map((t) => t.id);
@@ -58,6 +67,7 @@ export default async function ProjectPage({ params, searchParams }) {
   const tabs = [
     ["board", `Board · ${tasks.length}`],
     ["files", `Files & approvals${reviewCount ? ` · ${reviewCount}` : ""}`],
+    ["client", `Client${clientMessages ? ` · ${clientMessages}` : ""}`],
     ["overview", "Overview"],
   ];
 
@@ -112,7 +122,57 @@ export default async function ProjectPage({ params, searchParams }) {
         </>
       )}
 
-      {tab === "files" && <FilesPanel projectId={id} files={files} me={me} canReview={can(me, "reviewFiles")} />}
+      {tab === "files" && (
+        <FilesPanel projectId={id} files={files} me={me} canReview={can(me, "reviewFiles")} canShare={can(me, "reviewFiles") || can(me, "editProject")} hasClient={!!project.clientId} />
+      )}
+
+      {tab === "client" && (
+        !project.clientId ? (
+          <Card><p className="text-sm text-mute">This project has no client. Set one with “Edit” to open a client portal for it.</p></Card>
+        ) : (
+          <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
+            <Card title={`Conversation with ${project.client.name}`}>
+              <MessageThread
+                messages={messages}
+                action={sendProjectMessage}
+                projectId={id}
+                meId={me.id}
+                placeholder={`Message ${project.client.name} — they'll see it in their portal`}
+                emptyText="No messages yet. Anything written here is visible to the client."
+              />
+            </Card>
+            <div className="space-y-6">
+              <Card title="What the client sees">
+                <ul className="space-y-2 text-sm text-mute">
+                  <li>• Status: <span className="text-bone">{PROJECT_STATUS[project.status].label}</span>, deadline, overall progress</li>
+                  <li>• Milestones: <span className="text-bone">{tasks.filter((t) => t.clientVisible).length}</span> task{tasks.filter((t) => t.clientVisible).length === 1 ? "" : "s"} marked with <span className="text-gold">👁</span></li>
+                  <li>• Upcoming shoots and meetings on this project</li>
+                  <li>• Files you share from “Files & approvals”, which they can approve</li>
+                  <li>• This conversation</li>
+                </ul>
+                <p className="mt-3 text-xs text-mute/70">Internal tasks, comments, time and unshared files stay private.</p>
+              </Card>
+              <Card title="Shared deliverables" bodyClass="">
+                {clientFiles.length === 0 ? <p className="px-5 py-4 text-sm text-mute">Nothing shared yet.</p> : (
+                  <ul className="divide-y divide-line">
+                    {clientFiles.map((f) => (
+                      <li key={f.id} className="flex items-center gap-2 px-5 py-3 text-sm">
+                        <span className="min-w-0 flex-1 truncate">{f.name}</span>
+                        <StatusBadge map={CLIENT_DECISION} value={f.clientStatus || "PENDING"} />
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </Card>
+              <Card title="Portal logins">
+                {portalUsers.length === 0
+                  ? <p className="text-sm text-mute">Nobody at {project.client.name} can sign in yet. <Link href="/clients" className="text-gold hover:underline">Add a login</Link>.</p>
+                  : <ul className="space-y-1 text-sm">{portalUsers.map((u) => <li key={u.email}>{u.name} <span className="text-mute">· {u.email}</span></li>)}</ul>}
+              </Card>
+            </div>
+          </div>
+        )
+      )}
 
       {tab === "overview" && (
         <div className="grid gap-6 lg:grid-cols-[1fr_340px]">

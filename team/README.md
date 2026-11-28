@@ -11,6 +11,7 @@ Next.js 16 + Prisma + PostgreSQL, served behind the VPS's nginx.
 | Admin | Team accounts (not CEO/PM), clients, equipment, leave approvals, time reports, all projects |
 | Creative Director | Creates/edits projects, any task, approves files, all projects, time reports |
 | Staff | Projects they're on, their own tasks, uploads, time, leave requests, equipment bookings |
+| Client | The client portal only (`/portal`): their company's projects — progress, milestones, upcoming shoots, files shared with them (approve / request changes), and messages with the team |
 
 Rules live in `lib/permissions.js`.
 
@@ -19,7 +20,14 @@ Rules live in `lib/permissions.js`.
 Dashboard · projects & clients · Kanban tasks with comments · shared calendar
 (meetings, shoots, leave, deadlines) · equipment with clash-free booking ·
 files with review/approval and comments · time tracking with CSV export ·
-leave requests and approvals · team management.
+leave requests and approvals · team management · client portal.
+
+## Client portal
+
+Create logins on **Clients → Client portal access**. On a project, tick
+“Show to the client as a milestone” on tasks, use **Share with client** on
+files, and talk to the client in the **Client** tab. Everything else stays
+internal.
 
 ## Server
 

@@ -1,8 +1,8 @@
-import { Download, FileText, Film, ImageIcon, MessageSquare, Upload } from "lucide-react";
-import { FILE_STATUS, fmtBytes, fmtDateTime } from "@/lib/format";
+import { Download, Eye, EyeOff, FileText, Film, ImageIcon, MessageSquare, Upload } from "lucide-react";
+import { CLIENT_DECISION, FILE_STATUS, fmtBytes, fmtDateTime } from "@/lib/format";
 import { Avatar, Empty, StatusBadge } from "./ui";
 import { ConfirmButton, SubmitButton } from "./client-ui";
-import { addFileComment, deleteFile, reviewFile, setFileStatus, uploadFiles } from "@/app/(app)/projects/actions";
+import { addFileComment, deleteFile, reviewFile, setFileShared, setFileStatus, uploadFiles } from "@/app/(app)/projects/actions";
 
 function Thumb({ file }) {
   const src = `/api/files/${file.id}`;
@@ -13,7 +13,7 @@ function Thumb({ file }) {
 }
 
 /** Deliverables for one project: upload, preview, the review flow, and comments. */
-export default function FilesPanel({ projectId, files, me, canReview }) {
+export default function FilesPanel({ projectId, files, me, canReview, canShare, hasClient }) {
   return (
     <div className="space-y-5">
       <form action={uploadFiles} className="card flex flex-wrap items-center gap-3 p-4">
@@ -41,10 +41,24 @@ export default function FilesPanel({ projectId, files, me, canReview }) {
                     </div>
                     <p className="mt-1 text-xs text-mute">{fmtBytes(f.size)} · {f.uploadedBy.name} · {fmtDateTime(f.createdAt)}</p>
                     {f.reviewedBy && <p className="mt-0.5 text-xs text-mute">Reviewed by {f.reviewedBy.name}</p>}
+                    {f.sharedWithClient && (
+                      <p className="mt-1 flex items-center gap-1.5 text-xs text-gold">
+                        <Eye size={12} /> Shared with client · <StatusBadge map={CLIENT_DECISION} value={f.clientStatus || "PENDING"} />
+                      </p>
+                    )}
                     <div className="mt-3 flex flex-wrap gap-2">
                       <a href={`/api/files/${f.id}?download=1`} className="btn btn-ghost btn-sm"><Download size={13} />Download</a>
                       {(mine || canReview) && (f.status === "DRAFT" || f.status === "CHANGES_REQUESTED") && (
                         <form action={setFileStatus}><input type="hidden" name="id" value={f.id} /><input type="hidden" name="status" value="IN_REVIEW" /><button className="btn btn-ghost btn-sm">Send for review</button></form>
+                      )}
+                      {canShare && hasClient && (
+                        <form action={setFileShared}>
+                          <input type="hidden" name="id" value={f.id} />
+                          <input type="hidden" name="shared" value={String(!f.sharedWithClient)} />
+                          {f.sharedWithClient
+                            ? <button className="btn btn-ghost btn-sm"><EyeOff size={13} />Unshare</button>
+                            : <button className="btn btn-ghost btn-sm"><Eye size={13} />Share with client</button>}
+                        </form>
                       )}
                       {(mine || canReview) && (
                         <form action={deleteFile}><input type="hidden" name="id" value={f.id} /><ConfirmButton message={`Delete ${f.name}?`}>Delete</ConfirmButton></form>

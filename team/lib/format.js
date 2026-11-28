@@ -58,6 +58,12 @@ export const FILE_STATUS = {
   CHANGES_REQUESTED: { label: "Changes requested", tone: "red" },
 };
 
+export const CLIENT_DECISION = {
+  PENDING: { label: "Awaiting client", tone: "gold" },
+  APPROVED: { label: "Client approved", tone: "green" },
+  CHANGES_REQUESTED: { label: "Client wants changes", tone: "red" },
+};
+
 export const LEAVE_TYPES = { ANNUAL: "Annual leave", SICK: "Sick leave", UNPAID: "Unpaid leave", OTHER: "Other" };
 export const LEAVE_STATUS = {
   PENDING: { label: "Pending", tone: "gold" },
